@@ -50,7 +50,8 @@ async function handleSubmit() {
     });
     
     // Now result contains the data returned from the API
-    router.push(`/battles/${result.id}`);
+    // router.push(`/battles/${result.id}`);
+    router.push('/');
   } catch (error) {
     console.error('Erreur lors de la création de la battle:', error);
     
