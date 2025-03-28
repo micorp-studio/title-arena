@@ -1,0 +1,59 @@
+<!-- public/mesh-gradient.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1440" height="800" preserveAspectRatio="none" viewBox="0 0 1440 800">
+  <defs>
+    <!-- Swirling gradients using your palette -->
+    <linearGradient id="baseGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#080F1F" stop-opacity="1"></stop>
+      <stop offset="100%" stop-color="#0F1A2D" stop-opacity="1"></stop>
+    </linearGradient>
+
+    <!-- Radial gradients for abstract forms -->
+    <radialGradient id="swirl1" cx="20%" cy="80%" r="70%" fx="25%" fy="75%">
+      <stop offset="0%" stop-color="#5C2018" stop-opacity="0.9"></stop>
+      <stop offset="80%" stop-color="#A3512B" stop-opacity="0.8"></stop>
+      <stop offset="100%" stop-color="#5C2018" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="swirl2" cx="70%" cy="30%" r="80%" fx="65%" fy="35%">
+      <stop offset="0%" stop-color="#1C3166" stop-opacity="1"></stop>
+      <stop offset="50%" stop-color="#5D8BF4" stop-opacity="0.5"></stop>
+      <stop offset="100%" stop-color="#1C3166" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="swirl3" cx="40%" cy="40%" r="60%" fx="45%" fy="45%">
+      <stop offset="0%" stop-color="#121063" stop-opacity="0.7"></stop>
+      <stop offset="60%" stop-color="#243DA6" stop-opacity="0.2"></stop>
+      <stop offset="100%" stop-color="#121063" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <!-- Turbulent displacement map for swirling effect -->
+    <filter id="turbulence" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence baseFrequency="0.002 0.002" numOctaves="4" seed="2" type="fractalNoise" result="turbulence" />
+      <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="200" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+
+  </defs>
+
+  <!-- Base layer with dark background -->
+  <rect width="100%" height="100%" fill="url(#baseGradient)"></rect>
+  
+  <!-- Abstract swirling forms -->
+  <g filter="url(#turbulence)">
+    <!-- Earth red swirl (bottom left) -->
+    <circle cx="25%" cy="70%" r="680" fill="url(#swirl1)" opacity="0.9" filter="blur(5px)"></circle>
+    
+    <!-- Deep blue swirl (right side) -->
+    <circle cx="75%" cy="30%" r="600" fill="url(#swirl2)" opacity="0.8" filter="blur(5px)"></circle>
+    
+    <!-- Center transitional swirl -->
+    <ellipse cx="700" cy="400" rx="600" ry="350" fill="url(#swirl3)" opacity="0.4"></ellipse>  
+    <!-- Hot and cold spots with glow -->
+    <circle cx="25%" cy="70%" r="180" fill="#D45E3C" filter="blur(70px)" opacity="0.5"></circle>
+    <circle cx="75%" cy="30%" r="200" fill="#5D8BF4" filter="blur(80px)" opacity="0.8"></circle>
+    <circle cx="60%" cy="60%" r="120" fill="#A7C5EB" filter="blur(60px)" opacity="0.6"></circle>
+    <circle cx="40%" cy="60%" r="300" fill="#E6AE8C" filter="blur(600px)" opacity="0.3"></circle>
+  </g>
+
+
+  
+</svg>

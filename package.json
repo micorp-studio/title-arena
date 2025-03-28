@@ -21,6 +21,7 @@
     "@vueuse/core": "^13.0.0",
     "@vueuse/nuxt": "^13.0.0",
     "canvas-confetti": "^1.9.3",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "^0.41.0",
     "nuxt": "^3.16.1",
     "pinia": "^3.0.1",
@@ -31,6 +32,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@iconify-json/ph": "^1.2.2",
     "@types/bun": "latest",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.30.5",

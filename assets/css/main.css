@@ -2,143 +2,79 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+@theme static {
+  /* Typography */
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Space Grotesk', sans-serif;
+  
+  /* Cold Colors */
+  --color-cold-100: #EDF1F9;
+  --color-cold-200: #BFD5F8;
+  --color-cold-300: #82AAF7;
+  --color-cold-400: #223466;
+  --color-cold-500: #050A2D;
+  
+  /* Warm Colors */
+  --color-warm-100: #F6F1EE;
+  --color-warm-200: #EDD5CE;
+  --color-warm-300: #C37554;
+  --color-warm-400: #712303;
+  --color-warm-500: #240800;
+}
+
+/* Custom theme variables */
 :root {
-  /* Polices */
-  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-family-sans: 'Inter', system-ui, sans-serif;
+  /* Define radius */
+  --ui-radius: var(--radius-xl);
   
-  /* Couleurs principales */
-  --color-background: 0 0 0; /* Noir */
-  --color-surface: 17 17 21; /* Presque noir */
+  /* Set UI colors */
+  --ui-primary: var(--color-cold-300);
+  --ui-secondary: var(--color-warm-300);
   
-  /* Couleur primaire (violet) */
-  --color-primary-50: 245 240 255;
-  --color-primary-100: 235 227 253;
-  --color-primary-200: 214 199 251;
-  --color-primary-300: 183 157 247;
-  --color-primary-400: 149 107 240;
-  --color-primary-500: 124 73 229;
-  --color-primary-600: 109 54 200;
-  --color-primary-700: 92 41 166;
-  --color-primary-800: 74 35 132;
-  --color-primary-900: 56 28 96;
-  --color-primary-950: 35 13 71;
+  /* Customize text colors */
+  --ui-text: #240800;
+  --ui-text-highlighted: #240800;
+  --ui-text-muted: #712303;
   
-  /* Couleur secondaire (cyan) */
-  --color-secondary-50: 237 254 255;
-  --color-secondary-100: 224 252 255;
-  --color-secondary-200: 183 246 253;
-  --color-secondary-300: 132 231 250;
-  --color-secondary-400: 67 209 243;
-  --color-secondary-500: 32 186 226;
-  --color-secondary-600: 15 154 194;
-  --color-secondary-700: 15 124 159;
-  --color-secondary-800: 19 97 128;
-  --color-secondary-900: 23 71 96;
-  --color-secondary-950: 11 44 62;
+  /* Customize background */
+  --ui-bg: rgba(237, 241, 249, 0.05); /* Super subtle transparency for cards */
+  --ui-bg-muted: rgba(237, 241, 249, 0.025);
   
-  /* Couleur error (rouge) */
-  --color-error: 255 71 87;
-  
-  /* Couleur success (vert) */
-  --color-success: 0 216 133;
-  
-  /* Variables pour les effets de glow */
-  --glow-primary: 0 0 30px rgba(124, 73, 229, 0.25);
-  --glow-secondary: 0 0 30px rgba(32, 186, 226, 0.25);
-  
-  /* Couleurs UI */
-  --ui-primary: rgb(var(--color-primary-500));
-  --ui-secondary: rgb(var(--color-secondary-500));
+  /* Card and border colors */
+  --ui-border: transparent; /* Removing borders for minimalism */
 }
 
-.dark {
-  --color-background: 0 0 0;
-  --color-surface: 17 17 21;
-  
-  /* Couleurs plus vives en mode sombre */
-  --ui-primary: rgb(var(--color-primary-400));
-  --ui-secondary: rgb(var(--color-secondary-400));
-  
-  /* Plus d'intensité sur les glows */
-  --glow-primary: 0 0 40px rgba(149, 107, 240, 0.4);
-  --glow-secondary: 0 0 40px rgba(67, 209, 243, 0.4);
+/* Font classes */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-mono);
+  font-weight: 600;
 }
 
-/* Grain subtil sur l'arrière-plan */
-body::before {
-  content: "";
+body {
+  font-family: var(--font-sans);
+  position: relative;
+  min-height: 100vh;
+  background-color: #F6F1EE;
+  color: #240800;
+}
+
+/* Custom utility classes */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.mesh-bg {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
+  z-index: -10;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 600 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
-  pointer-events: none;
-  z-index: 9999;
+  overflow: hidden;
 }
 
-/* Styles utilitaires */
-.glow-primary {
-  box-shadow: var(--glow-primary);
-}
-
-.glow-secondary {
-  box-shadow: var(--glow-secondary);
-}
-
-.glow-error {
-  box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
-}
-
-.font-mono {
-  font-family: var(--font-family-mono);
-}
-
-/* Animation de chargement moderne */
-.dots-loader {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-.dots-loader .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--ui-primary);
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.dots-loader .dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.dots-loader .dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(0.5); opacity: 0.5; }
-  50% { transform: scale(1); opacity: 1; }
-}
-
-/* Effet de dégradé de bruit pour le fond */
-.noise-gradient {
-  position: relative;
-}
-
-.noise-gradient::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, 
-    rgba(var(--color-primary-900), 0.15), 
-    rgba(var(--color-secondary-900), 0.15)
-  );
-  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 600 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.3;
-  z-index: -1;
-  border-radius: inherit;
+.glassmorphism {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(237, 241, 249, 0.05);
+  box-shadow: 0 8px 32px rgba(36, 8, 0, 0.1);
 }

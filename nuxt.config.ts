@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   devtools: { enabled: true },
   nitro: {
     experimental: {
@@ -23,6 +24,13 @@ export default defineNuxtConfig({
 
   hub: {
     database: true
+  },
+
+  ui: {
+    theme: {
+      colors: ['primary', 'secondary', 'ocean', 'cedar', 'midnight', 'sandstone']
+    },
+    colorMode: false
   },
 
   compatibilityDate: '2025-03-25'
