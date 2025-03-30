@@ -1,16 +1,25 @@
 // composables/useBattleHelpers.ts
 import type { TitleOption } from '~/types';
+import { formatDistance, format } from 'date-fns';
 
 export function useBattleHelpers() {
   // Format a timestamp into a readable date
   const formatDate = (timestamp: number): string => {
-    return new Date(timestamp * 1000).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() &&
+                   date.getMonth() === now.getMonth() &&
+                   date.getFullYear() === now.getFullYear();
+    
+    // Show relative time if less than 7 days old
+    const daysDiff = Math.abs((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff < 7) {
+      return formatDistance(date, now, { addSuffix: true });
+    }
+    
+    // Otherwise show formatted date
+    return format(date, isToday ? 'p' : 'MMM d, yyyy');
   };
 
   // Format title options into a displayable string
@@ -35,7 +44,7 @@ export function useBattleHelpers() {
         toast.add({
           title: 'Link copied',
           description: 'Battle link copied to clipboard',
-          color: 'success',
+          color: 'primary',
           timeout: 3000
         });
       }
@@ -45,7 +54,7 @@ export function useBattleHelpers() {
         toast.add({
           title: 'Failed to copy',
           description: 'Could not copy link to clipboard',
-          color: 'error',
+          color: 'secondary',
           timeout: 3000
         });
       }
@@ -63,10 +72,18 @@ export function useBattleHelpers() {
     return [shuffled[0], shuffled[1]];
   };
 
+  // Get votes count label
+  const getVoteCountLabel = (count: number): string => {
+    if (count === 0) return 'No votes yet';
+    if (count === 1) return '1 vote';
+    return `${count} votes`;
+  };
+
   return {
     formatDate,
     formatTitles,
     copyBattleLink,
-    getRandomPair
+    getRandomPair,
+    getVoteCountLabel
   };
 }

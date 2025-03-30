@@ -5,9 +5,9 @@ export default defineAppConfig({
     colors: {
       primary: 'warm-300',  // Custom color
       secondary: 'cold-300',  // Custom color
-      info: 'frost',
-      success: 'emerald',
-      warning: 'amber',
+      info: 'cold-200',
+      success: 'cold-400',
+      warning: 'warm-200',
       error: 'warm-400'
     },
     

@@ -27,9 +27,6 @@ export default defineNuxtConfig({
   },
 
   ui: {
-    theme: {
-      colors: ['primary', 'secondary', 'ocean', 'cedar', 'midnight', 'sandstone']
-    },
     colorMode: false
   },
 

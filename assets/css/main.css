@@ -5,7 +5,7 @@
 @theme static {
   /* Typography */
   --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'Space Grotesk', sans-serif;
+  --font-sans: 'Fraunces', serif;
   
   /* Cold Colors */
   --color-cold-100: #EDF1F9;
@@ -28,8 +28,8 @@
   --ui-radius: var(--radius-xl);
   
   /* Set UI colors */
-  --ui-primary: var(--color-cold-300);
-  --ui-secondary: var(--color-warm-300);
+  --ui-primary: var(--color-warm-400);
+  --ui-secondary: var(--color-cold-400);
   
   /* Customize text colors */
   --ui-text: #240800;
@@ -37,8 +37,8 @@
   --ui-text-muted: #712303;
   
   /* Customize background */
-  --ui-bg: rgba(237, 241, 249, 0.05); /* Super subtle transparency for cards */
-  --ui-bg-muted: rgba(237, 241, 249, 0.025);
+  --ui-bg: var(--color-cold-100);
+  --ui-bg-muted: var(--color-cold-100/50);
   
   /* Card and border colors */
   --ui-border: transparent; /* Removing borders for minimalism */

@@ -1,4 +1,4 @@
-// composables/useBattlesAPI.ts
+// composables/useBattleApi.ts
 import { defineQuery, useMutation, useQueryCache } from '@pinia/colada';
 import { useRoute } from 'vue-router'; // Explicit import as recommended
 import type { 
@@ -11,11 +11,34 @@ import type {
 } from '~/types';
 
 /**
+ * Get base URL for API requests
+ */
+function getApiBaseUrl() {
+  // In client side, we can use window.location.origin
+  if (process.client) {
+    return window.location.origin;
+  }
+  
+  // In server side, we need to use useRequestURL
+  const requestURL = useRequestURL();
+  return `${requestURL.protocol}//${requestURL.host}`;
+}
+
+/**
  * Queries for fetching battles data
  */
 export const useAllBattles = defineQuery({
   key: ['battles'],
-  query: () => fetch('/api/battles').then(r => r.json() as Promise<Battle[]>),
+  query: () => {
+    const baseUrl = getApiBaseUrl();
+    return fetch(`${baseUrl}/api/battles`)
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json() as Promise<Battle[]>;
+      });
+  },
   staleTime: 0, // Always consider data stale to ensure freshness
   refetchOnWindowFocus: true
 });
@@ -25,26 +48,67 @@ export const useAllBattles = defineQuery({
  */
 export const useBattleDetails = defineQuery(() => {
   const route = useRoute();
+  const baseUrl = getApiBaseUrl();
+  
+  const { 
+    state,
+    asyncStatus,
+    refresh,
+    refetch
+  } = useQuery({
+    key: () => ['battle', route.params.id as string],
+    query: () => {
+      if (!route.params.id) return Promise.resolve(null) as any;
+      
+      return fetch(`${baseUrl}/api/battles/${route.params.id}`)
+        .then(r => {
+          if (!r.ok) {
+            throw new Error(`API error: ${r.status}`);
+          }
+          return r.json() as Promise<Battle>;
+        });
+    },
+    enabled: () => !!route.params.id,
+  });
   
   return {
-    key: () => ['battle', route.params.id as string],
-    query: () => fetch(`/api/battles/${route.params.id}`).then(r => r.json() as Promise<Battle>),
-    enabled: () => !!route.params.id,
+    state, 
+    asyncStatus,
+    refresh,
+    refetch
   };
 });
+
 
 /**
  * Get battle for voting interface (separate cache key to avoid refreshing during voting)
  */
-export const useBattleForVoting = defineQuery(() => {
-  const route = useRoute();
-  
-  return {
-    key: () => ['battle-voting', route.params.id as string],
-    query: () => fetch(`/api/battles/${route.params.id}`).then(r => r.json() as Promise<Battle>),
-    enabled: () => !!route.params.id,
-    staleTime: 5000, // Cache for 5 seconds to avoid refreshing between votes
-  };
+export const useBattleForVoting = defineQuery({
+  key: () => {
+    const route = useRoute();
+    return ['battle-voting', route.params.id as string];
+  },
+  query: () => {
+    const route = useRoute();
+    const baseUrl = getApiBaseUrl();
+    
+    if (!route.params.id) {
+      throw new Error('Battle ID is required');
+    }
+    
+    return fetch(`${baseUrl}/api/battles/${route.params.id}`)
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json() as Promise<Battle>;
+      });
+  },
+  enabled: () => {
+    const route = useRoute();
+    return !!route.params.id;
+  },
+  staleTime: 5000 // Cache for 5 seconds to avoid refreshing between votes
 });
 
 /**
@@ -52,6 +116,7 @@ export const useBattleForVoting = defineQuery(() => {
  */
 export function useBattleMutations() {
   const queryCache = useQueryCache();
+  const baseUrl = getApiBaseUrl();
 
   /**
    * Create a new battle
@@ -59,11 +124,17 @@ export function useBattleMutations() {
   const createBattle = useMutation({
     key: ['createBattle'], // Key for allowing other components to access the mutation state
     mutation: (data: CreateBattleRequest) => 
-      fetch('/api/battles', {
+      fetch(`${baseUrl}/api/battles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-      }).then(r => r.json() as Promise<Battle>),
+      })
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json() as Promise<Battle>;
+      }),
     onSuccess: () => {
       // Invalidate the battles list query
       queryCache.invalidateQueries({ key: ['battles'] });
@@ -76,11 +147,17 @@ export function useBattleMutations() {
   const updateBattle = useMutation({
     key: ['updateBattle'],
     mutation: ({ id, ...data }: UpdateBattleRequest & { id: string }) => 
-      fetch(`/api/battles/${id}`, {
+      fetch(`${baseUrl}/api/battles/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-      }).then(r => r.json() as Promise<Battle>),
+      })
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json() as Promise<Battle>;
+      }),
     onSuccess: (_, variables) => {
       // Invalidate both the specific battle and the list
       queryCache.invalidateQueries({ key: ['battle', variables.id] });
@@ -95,9 +172,15 @@ export function useBattleMutations() {
   const deleteBattle = useMutation({
     key: ['deleteBattle'],
     mutation: (id: string) => 
-      fetch(`/api/battles/${id}`, {
+      fetch(`${baseUrl}/api/battles/${id}`, {
         method: 'DELETE'
-      }).then(r => r.json()),
+      })
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json();
+      }),
     onSuccess: () => {
       // Invalidate the battles list query
       queryCache.invalidateQueries({ key: ['battles'] });
@@ -110,11 +193,17 @@ export function useBattleMutations() {
   const submitVote = useMutation({
     key: ['submitVote'],
     mutation: ({ battleId, winnerId, loserId }: VoteRequest & { battleId: string }) => 
-      fetch(`/api/battles/${battleId}/vote`, {
+      fetch(`${baseUrl}/api/battles/${battleId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ winnerId, loserId })
-      }).then(r => r.json() as Promise<VoteResponse>),
+      })
+      .then(r => {
+        if (!r.ok) {
+          throw new Error(`API error: ${r.status}`);
+        }
+        return r.json() as Promise<VoteResponse>;
+      }),
     onSuccess: (_, variables) => {
       // Invalidate specific battle queries
       queryCache.invalidateQueries({ key: ['battle', variables.battleId] });
