@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
+  css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
   nitro: {
     experimental: {
@@ -15,8 +15,6 @@ export default defineNuxtConfig({
     '@pinia/colada-nuxt',
     '@vueuse/nuxt',
   ],
-
-  css: ['~/assets/css/main.css'],
 
   typescript: {
     strict: true

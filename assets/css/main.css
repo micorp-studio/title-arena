@@ -2,6 +2,45 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+:root {
+  /* Typography */
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Fraunces', serif;
+  
+  /* Cold Colors - define them directly */
+  --color-cold-100: #EDF1F9;
+  --color-cold-200: #BFD5F8;
+  --color-cold-300: #82AAF7;
+  --color-cold-400: #223466;
+  --color-cold-500: #050A2D;
+  
+  /* Warm Colors - define them directly */
+  --color-warm-100: #F6F1EE;
+  --color-warm-200: #EDD5CE;
+  --color-warm-300: #C37554;
+  --color-warm-400: #712303;
+  --color-warm-500: #240800;
+  
+  /* Define radius */
+  --ui-radius: var(--radius-xl);
+  
+  /* Set UI colors */
+  --ui-primary: var(--color-warm-400);
+  --ui-secondary: var(--color-cold-400);
+  
+  /* Customize text colors */
+  --ui-text: #240800;
+  --ui-text-highlighted: #240800;
+  --ui-text-muted: #712303;
+  
+  /* Customize background */
+  --ui-bg: var(--color-cold-100);
+  --ui-bg-muted: var(--color-cold-100, 0.5);
+  
+  /* Card and border colors */
+  --ui-border: transparent;
+}
+
 @theme static {
   /* Typography */
   --font-mono: 'JetBrains Mono', monospace;
@@ -20,28 +59,6 @@
   --color-warm-300: #C37554;
   --color-warm-400: #712303;
   --color-warm-500: #240800;
-}
-
-/* Custom theme variables */
-:root {
-  /* Define radius */
-  --ui-radius: var(--radius-xl);
-  
-  /* Set UI colors */
-  --ui-primary: var(--color-warm-400);
-  --ui-secondary: var(--color-cold-400);
-  
-  /* Customize text colors */
-  --ui-text: #240800;
-  --ui-text-highlighted: #240800;
-  --ui-text-muted: #712303;
-  
-  /* Customize background */
-  --ui-bg: var(--color-cold-100);
-  --ui-bg-muted: var(--color-cold-100/50);
-  
-  /* Card and border colors */
-  --ui-border: transparent; /* Removing borders for minimalism */
 }
 
 /* Font classes */
