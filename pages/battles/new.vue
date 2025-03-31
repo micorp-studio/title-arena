@@ -39,7 +39,7 @@ const formTooltip = computed(() => {
 });
 
 // Get mutation
-const { createBattle: { mutate: createBattleMutate, asyncStatus: createStatus } } = useBattleMutations();
+const { createBattle: { mutateAsync: createBattleMutate, asyncStatus: createStatus } } = useBattleMutations();
 
 // Focus an option input by index
 const focusOptionInput = (index: number) => {
@@ -131,7 +131,7 @@ const handleSubmit = async () => {
   };
 
   try {
-    await createBattleMutate(battleData);
+    const createdBattle = await createBattleMutate(battleData);
     
     toast.add({
       title: 'Battle created',
@@ -139,8 +139,8 @@ const handleSubmit = async () => {
       color: 'primary'
     });
     
-    // Navigate to home page
-    router.push('/');
+    // Navigate to confirmation page instead of home
+    router.push(`/battles/${createdBattle.id}/created`);
   } catch (error) {
     toast.add({
       title: 'Error',
