@@ -174,7 +174,7 @@ const handleSubmit = async () => {
     });
     
     // Navigate to battle details page
-    router.push(`/battles/${battleId.value}`);
+    router.push(`/battles/${battleId.value}/results`);
   } catch (error) {
     toast.add({
       title: 'Error',
@@ -198,7 +198,7 @@ const registerOptionInput = (el: any, index: number) => {
     <div class="max-w-xl mx-auto mb-6">
       <UBreadcrumb :items="[
         { label: 'Home', icon: 'i-ph-house', to: '/' },
-        { label: battleData?.title || 'Battle', icon: 'i-ph-trophy', to: `/battles/${battleId}` },
+        { label: battleData?.title || 'Battle', icon: 'i-ph-trophy', to: `/battles/${battleId}/results` },
         { label: 'Edit', icon: 'i-ph-pencil-simple' }
       ]" />
     </div>
@@ -306,7 +306,7 @@ const registerOptionInput = (el: any, index: number) => {
         <!-- Submit -->
         <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
           <UButton
-            :to="`/battles/${battleId}`"
+            :to="`/battles/${battleId}/results`"
             color="neutral"
             variant="outline"
             class="bg-transparent text-warm-500/90"

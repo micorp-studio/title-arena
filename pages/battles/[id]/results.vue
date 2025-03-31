@@ -1,331 +1,273 @@
 <!-- pages/battles/[id]/results.vue -->
 <script setup lang="ts">
-import { h, onMounted, ref, nextTick } from 'vue';
+import { h, onMounted, nextTick } from 'vue';
 import type { TableColumn } from '@nuxt/ui';
+import { useBattleResults } from '~/composables/useBattleResults';
+import { useConfetti } from '~/composables/useConfetti';
+import type { TitleOption } from '~/types';
 
-// Types
-type TitleOption = {
-  id: string;
-  content: string;
-  score: number;
+definePageMeta({
+  layout: 'default'
+});
+
+// Extended TitleOption type with rank
+interface RankedTitleOption extends TitleOption {
   rank?: number;
-};
+}
 
-type Battle = {
-  id: string;
-  title: string;
-  createdAt: number;
-  options: TitleOption[];
-};
-
-// État
 const route = useRoute();
-const battleId = route.params.id as string;
-const isLoading = ref(true);
-const battle = ref<Battle | null>(null);
-const sortedOptions = ref<TitleOption[]>([]);
-const toast = useToast();
+const battleId = computed(() => route.params.id as string);
 const { showWinnerConfetti } = useConfetti();
 
-// Message pour le gagnant
-const winnerMessages = [
-  "Champion !",
-  "Grand vainqueur",
-  "Titre imbattable",
-  "Le meilleur choix",
-  "Excellente option"
-];
-const winnerMessage = ref('');
+// Get battle results
+const {
+  battle,
+  sortedOptions,
+  winner,
+  winnerMessage,
+  hasResults,
+  asyncStatus,
+  state,
+  copyTitleToClipboard,
+} = useBattleResults(battleId.value);
 
-// Emoji pour les premières places
-const rankEmojis = ["🏆", "🥈", "🥉"];
-
-// Fonction pour copier le titre dans le presse-papiers
-function copyTitleToClipboard(title: string) {
-  navigator.clipboard.writeText(title).then(() => {
-    toast.add({
-      title: 'Titre copié !',
-      description: 'Le titre a été copié dans le presse-papiers',
-      icon: 'i-heroicons-clipboard-document-check',
-      color: 'success',
-    });
-  }).catch(err => {
-    console.error('Erreur lors de la copie :', err);
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible de copier le titre',
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'error',
-    });
-  });
-}
-
-// Charger les données de la battle
-async function fetchBattle() {
-  isLoading.value = true;
-  try {
-    const response = await $fetch<Battle>(`/api/battles/${battleId}`);
-    battle.value = response;
-    
-    // Trier les options par score et ajouter le rang
-    const options = [...response.options].sort((a, b) => b.score - a.score);
-    sortedOptions.value = options.map((option, index) => ({
-      ...option,
-      rank: index + 1
-    }));
-    
-    // Choisir un message aléatoire pour le gagnant
-    winnerMessage.value = winnerMessages[Math.floor(Math.random() * winnerMessages.length)];
-    
-    // Attendre que le DOM soit prêt pour lancer les confettis
-    nextTick(() => {
-      showWinnerConfetti();
-    });
-    
-  } catch (error) {
-    console.error('Error fetching battle results:', error);
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-// Définir les colonnes du tableau
-const columns: TableColumn<TitleOption>[] = [
+// Table columns for results
+const columns: TableColumn<RankedTitleOption>[] = [
   {
     id: 'rank',
-    header: 'Rang',
+    header: 'Rank',
     cell: ({ row }) => {
       const rank = row.original.rank;
-      if (rank === undefined) return '';
+      const opacity = rank === 1 ? '100' : 
+                     rank === 2 ? '90' : 
+                     rank === 3 ? '80' : '70';
       
-      return h('div', { 
-        class: 'flex justify-center items-center h-10'
-      }, [
-        h('div', { 
-          class: 'flex items-center justify-center relative'
-        }, [
-          // Numéro de rang
-          h('span', { 
-            class: `font-bold ${
-              rank === 1 ? 'text-primary text-lg' : 
-              rank === 2 ? 'text-secondary text-lg' : 
-              rank === 3 ? 'text-warning text-lg' : 
-              'text-gray-500'
-            }`
-          }, `${rank}`),
-          
-          // Médaille à côté du numéro
-          rank <= 3 ? h('span', { 
-            class: 'ml-2'
-          }, rankEmojis[rank - 1]) : null
-        ])
-      ]);
+      return h('div', { class: `text-center font-mono text-cold-500 opacity-${opacity}` }, rank);
+    },
+    meta: {
+      class: {
+        th: 'w-16 text-center',
+        td: 'text-center'
+      }
     }
   },
   {
     accessorKey: 'content',
-    header: () => h('div', { class: 'flex items-center' }, [
-      h('span', {}, 'Titre'),
-      h('span', { class: 'ml-2 text-xs text-gray-500' }, '(cliquer pour copier)')
-    ]),
+    header: 'Title',
     cell: ({ row }) => {
       const rank = row.original.rank;
-      const content = row.getValue('content') as string;
+      const content = row.original.content;
       
-      if (rank === undefined) return content;
+      // Determine font weight based on rank
+      const fontWeight = rank === 1 ? 'font-medium' : 
+                         rank === 2 ? 'font-normal' : '';
       
-      return h('button', { 
-        class: `font-medium text-left w-full transition-all hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2 py-1 rounded ${
-          rank === 1 ? 'text-primary text-lg cursor-pointer' : 
-          rank === 2 ? 'text-secondary cursor-pointer' : 
-          rank === 3 ? 'text-warning cursor-pointer' : 
-          'text-gray-500 dark:text-gray-400 cursor-pointer'
-        }`,
-        onClick: () => copyTitleToClipboard(content),
-        title: 'Cliquer pour copier ce titre'
-      }, content);
-    }
+      // Determine opacity based on rank
+      const opacity = rank === 1 ? '100' : 
+                     rank === 2 ? '90' : 
+                     rank === 3 ? '80' : '70';
+      
+      // Create tooltip component for "Click to copy" message
+      const UTooltip = resolveComponent('UTooltip');
+      
+      return h(UTooltip, { text: "Click to copy" }, () =>
+        h('button', { 
+          class: `${fontWeight} text-cold-500 opacity-${opacity} cursor-pointer`,
+          onClick: () => copyTitleToClipboard(content),
+        }, content)
+      );
+    },
   },
   {
     accessorKey: 'score',
     header: 'Score',
     cell: ({ row }) => {
       const rank = row.original.rank;
+      const score = row.original.score;
+      
+      // Determine opacity based on rank
+      const opacity = rank === 1 ? '100' : 
+                     rank === 2 ? '90' : 
+                     rank === 3 ? '80' : '70';
       
       return h('div', { 
-        class: `text-right font-mono ${
-          rank === 1 ? 'text-lg font-bold text-primary' : 
-          rank === 2 ? 'font-bold text-secondary' : 
-          rank === 3 ? 'font-bold text-warning' : 
-          'text-gray-500 dark:text-gray-400'
-        }`
-      }, row.getValue('score'));
+        class: `text-right font-mono text-cold-500 opacity-${opacity}`
+      }, score);
+    },
+    meta: {
+      class: {
+        th: 'text-right w-24',
+        td: 'text-right'
+      }
     }
   }
 ];
 
-// Charger les données au montage du composant
-onMounted(fetchBattle);
+// Trigger confetti on mount if we have a winner
+onMounted(async () => {
+  if (winner.value) {
+    await nextTick();
+    showWinnerConfetti();
+  }
+});
+
+// Watch for winner changes (in case of data refresh)
+watch(() => winner.value, async (newWinner) => {
+  if (newWinner) {
+    await nextTick();
+    showWinnerConfetti();
+  }
+}, { immediate: false });
 </script>
 
 <template>
-  <UContainer class="py-8">
+  <div class="container mx-auto px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <div class="max-w-3xl mx-auto mb-6">
+      <UBreadcrumb :items="[
+        { label: 'Home', icon: 'i-ph-house', to: '/' },
+        { label: battle?.title || 'Battle', icon: 'i-ph-trophy' },
+        { label: 'Results', icon: 'i-ph-ranking' }
+      ]" />
+    </div>
+    
     <!-- Loading state -->
-    <UCard v-if="isLoading" class="text-center py-8">
-      <div class="flex flex-col items-center">
-        <UIcon name="i-heroicons-arrow-path" class="text-4xl animate-spin mb-4" />
-        <p>Chargement des résultats...</p>
-      </div>
-    </UCard>
+    <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
+      <UCard>
+        <div class="py-8 text-center">
+          <div class="animate-pulse mb-4">
+            <div class="h-8 w-64 bg-white/10 rounded-md mx-auto"></div>
+            <div class="h-4 w-40 bg-white/5 rounded-md mx-auto mt-2"></div>
+          </div>
+          <p class="opacity-80">Loading battle results...</p>
+        </div>
+      </UCard>
+    </div>
+    
+    <!-- Error state -->
+    <div v-else-if="state.status === 'error'" class="max-w-3xl mx-auto">
+      <UCard>
+        <div class="py-8 text-center">
+          <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
+          <h3 class="font-mono text-xl mb-2">Error Loading Results</h3>
+          <p class="opacity-80">{{ state.error?.message || 'Failed to load battle results' }}</p>
+          <UButton color="primary" to="/" class="mt-4">
+            Return Home
+          </UButton>
+        </div>
+      </UCard>
+    </div>
     
     <!-- Results content -->
-    <template v-else-if="battle">
-      <div class="mb-6">
-        <UBreadcrumb :items="[
-          { label: 'Battles', to: '/' },
-          { label: battle.title },
-          { label: 'Résultats' }
-        ]" />
-      </div>
-      
+    <div v-else-if="battle" class="max-w-3xl mx-auto">
       <UCard>
         <template #header>
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-              <h1 class="text-xl font-bold">{{ battle.title }}</h1>
-              <p class="text-sm text-gray-500">Classement des titres</p>
+              <h1 class="text-xl font-bold font-mono">{{ battle.title }}</h1>
+              <p class="text-sm opacity-70">{{ battle.voteCount || 0 }} votes</p>
             </div>
-            <UButton 
-              :to="`/battles/${battleId}/vote`"
-              color="primary"
-              variant="outline"
-              icon="i-heroicons-hand-thumb-up"
-            >
-              Voter encore
-            </UButton>
+            
+            <div class="flex gap-2">
+              <UButton
+                :to="`/battles/${battleId}/edit`"
+                color="neutral"
+                variant="ghost"
+                icon="i-ph-pencil-simple"
+              >
+                Edit Battle
+              </UButton>
+            </div>
           </div>
         </template>
         
-        <!-- Winner spotlight (centered, with visual effects) -->
-        <div v-if="sortedOptions.length > 0" id="confetti-container" class="my-8 max-w-2xl mx-auto">
-          <div class="text-center p-6 bg-primary-50 dark:bg-primary-950/30 rounded-lg border-(1 primary-200 dark:primary-800) relative shadow-lg">
-            <!-- Glow effect -->
-            <div class="absolute inset-0 rounded-lg glow-effect"></div>
-            
-            <!-- Trophée avec étincelles pulsantes -->
-            <div class="flex justify-center mb-4">
-              <div class="relative inline-block">
-                <UIcon name="i-heroicons-trophy" class="text-6xl text-primary" />
-                <span class="absolute -top-2 -right-1 text-2xl spark-pulsate">✨</span>
-                <span class="absolute top-6 left-2 text-sm rotate-180 spark-pulsate-delay">✨</span>
-              </div>
+        <!-- Winner spotlight using UCard -->
+        <div v-if="winner" id="confetti-container" class="mb-6 mt-2">
+          <UCard
+            variant="subtle"
+            class="text-center bg-gradient-to-b from-cold-400/5 to-cold-400/0 border-col-500/50"
+          >
+            <!-- Trophy icon -->
+            <div class="flex justify-center mb-3">
+              <UIcon name="i-ph-trophy" class="text-4xl text-warm-500" />
             </div>
             
-            <!-- Message de podium avec badge, légèrement pivoté -->
-            <div class="transform -rotate-3 -translate-y-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-100 inline-block px-4 py-1 rounded-full text-sm font-bold mb-3 shadow-sm">
-              {{ winnerMessage }}
+            <!-- Winner badge -->
+            <div class="mb-3">
+              <span class="px-3 py-0.5 text-xs font-bold bg-warm-500/10 text-warm-500 rounded-full">
+                {{ winnerMessage }}
+              </span>
             </div>
             
-            <!-- Contenu du titre gagnant -->
-            <h3 class="text-xl sm:text-2xl font-bold text-primary mb-3 cursor-pointer relative z-10 px-4" 
-                title="Cliquer pour copier ce titre"
-                @click="copyTitleToClipboard(sortedOptions[0]?.content)">
-              {{ sortedOptions[0]?.content }}
-            </h3>
-            <p class="text-primary-700 dark:text-primary-300 font-mono font-bold">
-              Score: {{ sortedOptions[0]?.score }}
+            <!-- Winner title with tooltip -->
+            <UTooltip text="Click to copy">
+              <button 
+                class="text-xl font-medium text-warm-500 mb-2 cursor-pointer" 
+                @click="copyTitleToClipboard(winner.content)"
+              >
+                {{ winner.content }}
+              </button>
+            </UTooltip>
+            
+            <p class="text-sm font-mono text-warm-500/90">
+              Score: {{ winner.score }}
             </p>
-          </div>
+          </UCard>
         </div>
         
         <!-- Results table -->
         <UTable 
-          :data="sortedOptions" 
           :columns="columns"
-          class="w-full"
+          :data="sortedOptions"
           :ui="{
-            tr: 'h-12 transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/50 data-[rank=1]:bg-primary-50 data-[rank=1]:dark:bg-primary-950/20 data-[rank=2]:bg-secondary-50 data-[rank=2]:dark:bg-secondary-950/20 data-[rank=3]:bg-warning-50 data-[rank=3]:dark:bg-warning-950/20',
-            th: 'px-4 py-3.5 text-sm text-(--ui-text-highlighted) text-left rtl:text-right font-semibold [&:has([role=checkbox])]:pe-0 whitespace-nowrap',
-            td: 'p-2 sm:p-4 text-sm text-(--ui-text-muted) [&:has([role=checkbox])]:pe-0'
+            base: 'min-w-full text-left rtl:text-right',
+            thead: 'border-b border-white/5',
+            tr: 'hover:bg-white/2 transition-colors',
+            th: 'px-4 py-3 text-sm opacity-70 font-medium',
+            td: 'px-4 py-3'
           }"
         >
           <!-- Empty state -->
           <template #empty>
-            <div class="text-center py-10">
-              <UIcon name="i-heroicons-face-frown" class="text-5xl mb-2 text-gray-400" />
-              <h3 class="text-base font-medium mb-2">Aucun résultat</h3>
-              <p class="text-sm text-gray-500 mb-4">
-                Il semble qu'aucun vote n'ait encore été enregistré pour cette battle
+            <div class="text-center py-8">
+              <UIcon name="i-ph-chart-line-down" class="text-5xl mb-4 opacity-40" />
+              <h3 class="text-lg font-medium mb-2">No results yet</h3>
+              <p class="text-sm opacity-80 mb-4">
+                This battle hasn't received any votes yet
               </p>
-              <UButton :to="`/battles/${battleId}/vote`" icon="i-heroicons-hand-thumb-up" color="primary">
-                Voter maintenant
+              
+              <UButton
+                :to="`/battles/${battleId}/vote`"
+                color="primary"
+                icon="i-ph-check-square"
+              >
+                Start Voting
               </UButton>
             </div>
           </template>
         </UTable>
         
         <template #footer>
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-sm text-gray-500">
-              Le classement est basé sur le système ELO
-            </p>
-            <UButton
-              to="/"
-              variant="ghost"
+          <div class="flex justify-end items-center gap-4">
+            <UButton 
+              :to="`/battles/${battleId}/vote`"
               color="neutral"
-              icon="i-heroicons-arrow-left"
+              variant="ghost"
+              icon="i-ph-arrow-clockwise"
             >
-              Retour aux battles
+              Vote again
+            </UButton>
+            <UButton
+              :to="`/`"
+              color="primary"
+              variant="subtle"
+              icon="i-ph-arrow-left"
+            >
+              Back to Home
             </UButton>
           </div>
         </template>
       </UCard>
-    </template>
-    
-    <!-- Battle not found -->
-    <UCard v-else class="text-center py-8">
-      <div class="flex flex-col items-center">
-        <UIcon name="i-heroicons-exclamation-triangle" class="text-4xl mb-4 text-yellow-500" />
-        <p class="mb-4">Battle introuvable</p>
-        <UButton to="/" icon="i-heroicons-arrow-left">Retour au tableau de bord</UButton>
-      </div>
-    </UCard>
-  </UContainer>
+    </div>
+  </div>
 </template>
-
-<style>
-/* Animation de pulsation pour les étincelles */
-@keyframes sparkPulsate {
-  0%, 100% {
-    opacity: 0.0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.2);
-  }
-}
-
-.spark-pulsate {
-  animation: sparkPulsate 2s ease-in-out infinite;
-}
-
-.spark-pulsate-delay {
-  animation: sparkPulsate 3s ease-in-out 1s infinite;
-}
-
-/* Effet de lueur */
-.glow-effect {
-  box-shadow: 0 0 15px 5px rgba(var(--color-primary-500), 0.3),
-              0 0 30px 10px rgba(var(--color-primary-500), 0.1);
-  opacity: 0.5;
-  z-index: 0;
-}
-
-/* Media queries pour le responsive */
-@media (max-width: 640px) {
-  .glow-effect {
-    box-shadow: 0 0 10px 3px rgba(var(--color-primary-500), 0.3);
-  }
-}
-</style>

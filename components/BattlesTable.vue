@@ -158,7 +158,7 @@ function confirmDelete() {
 
 // Handle row click
 function handleRowClick(row: any) {
-  router.push(`/battles/${row.original.id}`);
+  router.push(`/battles/${row.original.id}/results`);
 }
 </script>
 

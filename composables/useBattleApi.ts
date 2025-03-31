@@ -83,32 +83,38 @@ export const useBattleDetails = defineQuery(() => {
 /**
  * Get battle for voting interface (separate cache key to avoid refreshing during voting)
  */
-export const useBattleForVoting = defineQuery({
-  key: () => {
-    const route = useRoute();
-    return ['battle-voting', route.params.id as string];
-  },
-  query: () => {
-    const route = useRoute();
-    const baseUrl = getApiBaseUrl();
-    
-    if (!route.params.id) {
-      throw new Error('Battle ID is required');
-    }
-    
-    return fetch(`${baseUrl}/api/battles/${route.params.id}`)
-      .then(r => {
-        if (!r.ok) {
-          throw new Error(`API error: ${r.status}`);
-        }
-        return r.json() as Promise<Battle>;
-      });
-  },
-  enabled: () => {
-    const route = useRoute();
-    return !!route.params.id;
-  },
-  staleTime: 5000 // Cache for 5 seconds to avoid refreshing between votes
+export const useBattleForVoting = defineQuery(() => {
+  const route = useRoute();
+  const baseUrl = getApiBaseUrl();
+  
+  const { 
+    state, 
+    asyncStatus, 
+    refresh, 
+    refetch 
+  } = useQuery({
+    key: () => ['battle-voting', route.params.id as string],
+    query: () => {
+      if (!route.params.id) return Promise.resolve(null) as any;
+      
+      return fetch(`${baseUrl}/api/battles/${route.params.id}`)
+        .then(r => {
+          if (!r.ok) {
+            throw new Error(`API error: ${r.status}`);
+          }
+          return r.json() as Promise<Battle>;
+        });
+    },
+    enabled: () => !!route.params.id,
+    staleTime: 5000, // Cache for 5 seconds to avoid refreshing between votes
+  });
+  
+  return {
+    state,
+    asyncStatus,
+    refresh,
+    refetch
+  };
 });
 
 /**

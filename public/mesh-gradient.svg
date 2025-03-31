@@ -39,7 +39,7 @@
   <!-- Abstract swirling forms -->
   <g filter="url(#turbulence)">
     <!-- Cold (center right) -->
-    <ellipse cx="94%" cy="40%" rx="510" ry="430" fill="url(#cool)" opacity="1" transform="rotate(0)" filter="blur(12px)"></ellipse>
+    <ellipse cx="94%" cy="40%" rx="510" ry="830" fill="url(#cool)" opacity="1" transform="rotate(0)" filter="blur(12px)"></ellipse>
     <ellipse cx="10%" cy="20%" rx="610" ry="40" fill="url(#cool_2)" opacity="0.7" transform="rotate(20)" filter="blur(42px)"></ellipse>
     
     <!-- Warm (bottom left) -->

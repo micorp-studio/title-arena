@@ -178,7 +178,7 @@ const columns: TableColumn<Battle>[] = [
         ),
         h(UTooltip, { text: 'Delete Battle' }, () => 
           h(UButton, {
-            color: 'secondary',
+            color: 'primary',
             variant: 'ghost',
             icon: 'i-ph-trash',
             size: 'md',
@@ -225,6 +225,12 @@ function handleShareLink() {
   copyBattleLink(currentBattleId.value, 'vote', toast);
 }
 
+// New function to begin voting from the share modal
+function beginVoting() {
+  shareModalOpen.value = false;
+  router.push(`/battles/${currentBattleId.value}/vote`);
+}
+
 // Delete modal functions
 function openDeleteModal(battle: Battle) {
   deleteBattleId.value = battle.id;
@@ -247,7 +253,7 @@ function confirmDelete() {
 
 // Handle row click
 function handleRowClick(row: any) {
-  router.push(`/battles/${row.original.id}`);
+  router.push(`/battles/${row.original.id}/results`);
 }
 
 // Custom empty state component
@@ -259,7 +265,9 @@ const emptyState = () => {
       'Create your first battle to start gathering feedback on which title options resonate the most with your audience.'
     ),
     h(resolveComponent('UButton'), {
-      color: 'secondary',
+      color: 'primary',
+      variant: 'solid',
+      size: 'lg',
       icon: 'i-ph-plus-bold',
       to: '/battles/new'
     }, () => 'Create Your First Battle')
@@ -273,13 +281,13 @@ const emptyState = () => {
     <div class="mb-8 md:flex px-2 items-center justify-between">
       <div>
         <h1 class="text-3xl md:text-4xl font-bold font-mono">
-          Versus
+          Celcius
         </h1>
         <p class="mt-2 ml-1 opacity-70">Easy choices. Hard data.</p>
       </div>
 
       <div class="flex gap-4 mt-4 md:mt-0">
-        <UTooltip text="Refresh">
+        <!-- <UTooltip text="Refresh">
         <UButton
           icon="i-ph-arrows-clockwise"
           color="neutral"
@@ -291,9 +299,9 @@ const emptyState = () => {
         >
           <span class="sr-only">Refresh</span>
         </UButton>
-        </UTooltip>
+        </UTooltip> -->
         
-        <UButton 
+        <!-- <UButton 
           icon="i-ph-flask"
           color="secondary"
           @click="generateTestBattle"
@@ -301,12 +309,14 @@ const emptyState = () => {
           :disabled="createStatus === 'loading'"
         >
           Test Battle
-        </UButton>
+        </UButton> -->
       
         <UButton 
           icon="i-ph-plus-bold"
           to="/battles/new"
+          variant="solid"
           color="primary"
+          size="lg"
         >
           Create Battle
         </UButton>
@@ -336,7 +346,7 @@ const emptyState = () => {
     </UCard>
     
     <!-- How It Works section -->
-    <HowItWorks v-if="state.data?.length === 0" />
+    <!-- <HowItWorks v-if="state.data?.length === 0" /> -->
     
     <!-- Share Modal -->
     <UModal 
@@ -346,7 +356,7 @@ const emptyState = () => {
     >
       <template #body>
         <p class="mb-4">Share this battle with others to collect votes. The link has been copied to your clipboard.</p>
-        <p class="font-mono text-sm p-3 bg-white/5 rounded-lg break-all">
+        <p class="font-mono text-sm p-3 bg-cold-500/5 rounded-lg break-all">
           {{ shareUrl }}
         </p>
       </template>
@@ -361,10 +371,10 @@ const emptyState = () => {
         </UButton>
         <UButton 
           color="primary" 
-          icon="i-ph-link" 
-          @click="handleShareLink"
+          icon="i-ph-arrow-right" 
+          @click="beginVoting"
         >
-          Copy Link Again
+          Begin voting
         </UButton>
       </template>
     </UModal>
@@ -389,7 +399,7 @@ const emptyState = () => {
           Cancel
         </UButton>
         <UButton 
-          color="secondary" 
+          color="primary" 
           icon="i-ph-trash" 
           @click="confirmDelete"
         >
