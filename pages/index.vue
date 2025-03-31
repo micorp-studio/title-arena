@@ -281,7 +281,7 @@ const emptyState = () => {
     <div class="mb-8 md:flex px-2 items-center justify-between">
       <div>
         <h1 class="text-3xl md:text-4xl font-bold font-mono">
-          Celcius
+          Celsius
         </h1>
         <p class="mt-2 ml-1 opacity-70">Easy choices. Hard data.</p>
       </div>
