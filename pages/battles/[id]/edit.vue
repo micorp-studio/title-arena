@@ -241,8 +241,7 @@ const registerOptionInput = (el: any, index: number) => {
       <form @submit.prevent="handleSubmit" class="space-y-10">
         <!-- Battle Title -->
         <div class="flex flex-col gap-1">
-          <UFormLabel required>Battle Name</UFormLabel>
-          <UTooltip :text="titleTooltip" :disabled="isTitleValid">
+          <UFormField label="Battle Name" required>
             <UInput 
               v-model="title" 
               placeholder="The topic of your video" 
@@ -252,16 +251,17 @@ const registerOptionInput = (el: any, index: number) => {
               @keydown="handleTitleKeyDown"
               ref="titleInputRef"
             />
-          </UTooltip>
+          </UFormField>
         </div>
         
         <!-- Options -->
         <div>
           <div class="flex justify-between items-center mb-2">
-            <UFormLabel required>Title Options</UFormLabel>
-            <p class="text-sm opacity-80">
-              {{ options.filter(o => o.content.trim()).length }} option{{ options.filter(o => o.content.trim()).length !== 1 ? 's' : '' }}
-            </p>
+            <UFormField label="Title Options" required>
+              <p class="text-sm opacity-80">
+                {{ options.filter(o => o.content.trim()).length }} option{{ options.filter(o => o.content.trim()).length !== 1 ? 's' : '' }}
+              </p>
+            </UFormField>
           </div>
           
           <div class="space-y-3">

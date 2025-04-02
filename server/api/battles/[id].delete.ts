@@ -1,61 +1,52 @@
 // server/api/battles/[id].delete.ts
 import { defineEventHandler } from 'h3';
-import { useDrizzle, eq, tables } from '~/server/utils/drizzle';
+import { useDrizzle, eq, tables, battleOperations } from '~/server/utils/drizzle';
+import { getBattleIdParam, logger } from '~/server/utils/helpers';
 import type { DeleteBattleResponse } from '~/types';
+
+const log = logger('battles-delete');
 
 export default defineEventHandler(async (event): Promise<DeleteBattleResponse> => {
   try {
-    const { id } = getRouterParams(event);
-    
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        message: 'Battle ID is required'
-      });
-    }
-    
+    const id = getBattleIdParam(event);
     const db = useDrizzle();
+    const { battleExists } = battleOperations();
     
     // Check if battle exists
-    const existingBattle = await db
-      .select()
-      .from(tables.battles)
-      .where(eq(tables.battles.id, id))
-      .get();
-      
-    if (!existingBattle) {
+    const exists = await battleExists(id);
+    if (!exists) {
       throw createError({
         statusCode: 404,
         message: 'Battle not found'
       });
     }
     
-    // Delete all associated title options first (if not using cascade)
-    await db
-      .delete(tables.titleOptions)
-      .where(eq(tables.titleOptions.battleId, id));
-    
-    // Then delete the battle
-    const deletedBattle = await db
-      .delete(tables.battles)
+    // Get battle details before deletion for the response
+    const battleToDelete = await db
+      .select()
+      .from(tables.battles)
       .where(eq(tables.battles.id, id))
-      .returning()
       .get();
-
-    if (!deletedBattle) {
+    
+    if (!battleToDelete) {
       throw createError({
-        statusCode: 500,
-        message: 'Failed to delete battle'
+        statusCode: 404,
+        message: 'Battle not found'
       });
     }
+    
+    // Delete the battle (cascades to title options)
+    await db
+      .delete(tables.battles)
+      .where(eq(tables.battles.id, id));
     
     return {
       success: true,
       data: {
-        id: deletedBattle.id,
-        title: deletedBattle.title,
-        createdAt: deletedBattle.createdAt,
-        voteCount: deletedBattle.voteCount ?? 0
+        id: battleToDelete.id,
+        title: battleToDelete.title,
+        createdAt: battleToDelete.createdAt,
+        voteCount: battleToDelete.voteCount
       }
     };
   } catch (error) {
@@ -63,6 +54,7 @@ export default defineEventHandler(async (event): Promise<DeleteBattleResponse> =
       throw error;
     }
     
+    log.error(`Failed to delete battle with ID: ${getRouterParams(event).id}`, error);
     throw createError({
       statusCode: 500,
       message: 'Failed to delete battle'

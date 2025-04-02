@@ -1,9 +1,11 @@
 // server/api/battles/index.post.ts
 import { defineEventHandler } from 'h3';
-import { battleSchema, generateId, getCurrentTimestamp } from '~/server/utils/helpers';
-import { useDrizzle, mapBattleRecord } from '~/server/utils/drizzle';
+import { battleSchema, generateId, getCurrentTimestamp, logger, serverConfig } from '~/server/utils/helpers';
+import { useDrizzle, tables, mapBattleRecord } from '~/server/utils/drizzle';
 import { ZodError } from 'zod';
 import type { Battle, CreateBattleRequest } from '~/types';
+
+const log = logger('battles-create');
 
 export default defineEventHandler(async (event): Promise<Battle> => {
   try {
@@ -35,7 +37,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
           id: generateId(),
           battleId,
           content,
-          score: 1000 // Initial ELO score
+          score: serverConfig.elo.initialScore
         });
     }
     
@@ -61,6 +63,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
         message: error.errors[0].message
       });
     }
+    log.error('Failed to create battle', error);
     throw createError({
       statusCode: 500,
       message: (error as Error).message || 'Failed to create battle'

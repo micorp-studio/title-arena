@@ -1,35 +1,26 @@
 // server/api/battles/[id].put.ts
 import { defineEventHandler } from 'h3';
-import { updateBattleSchema, generateId } from '~/server/utils/helpers';
-import { useDrizzle, eq, tables, mapBattleRecord } from '~/server/utils/drizzle';
+import { updateBattleSchema, generateId, getBattleIdParam, logger, serverConfig } from '~/server/utils/helpers';
+import { useDrizzle, eq, tables, mapBattleRecord, battleOperations } from '~/server/utils/drizzle';
 import { ZodError } from 'zod';
 import type { Battle, UpdateBattleRequest } from '~/types';
 
+const log = logger('battles-update');
+
 export default defineEventHandler(async (event): Promise<Battle> => {
   try {
-    const { id } = getRouterParams(event);
-    
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        message: 'Battle ID is required'
-      });
-    }
+    const id = getBattleIdParam(event);
     
     // Parse and validate request body
     const body = await readBody<UpdateBattleRequest>(event);
     const validData = updateBattleSchema.parse(body);
     
     const db = useDrizzle();
+    const { battleExists } = battleOperations();
     
     // Verify battle exists
-    const existingBattle = await db
-      .select()
-      .from(tables.battles)
-      .where(eq(tables.battles.id, id))
-      .get();
-    
-    if (!existingBattle) {
+    const exists = await battleExists(id);
+    if (!exists) {
       throw createError({
         statusCode: 404,
         message: 'Battle not found'
@@ -52,7 +43,6 @@ export default defineEventHandler(async (event): Promise<Battle> => {
     const existingOptionIds = new Set(existingOptions.map(opt => opt.id));
     
     // Track option changes
-    // Only consider options with defined IDs for update
     const optionsToAdd = [];
     const optionsToUpdate = [];
     
@@ -65,7 +55,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
       }
     }
     
-    // Find options to delete (options in DB that are not in the update request)
+    // Find options to delete
     const optionIdsToKeep = new Set(
       validData.options
         .filter(opt => opt.id)
@@ -83,9 +73,9 @@ export default defineEventHandler(async (event): Promise<Battle> => {
         .where(eq(tables.titleOptions.id, option.id));
     }
     
-    // Process updates - make sure we have a string ID
+    // Process updates
     for (const option of optionsToUpdate) {
-      if (option.id) { // Additional safety check
+      if (option.id) { 
         await db
           .update(tables.titleOptions)
           .set({ content: option.content })
@@ -101,7 +91,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
           id: generateId(),
           battleId: id,
           content: option.content,
-          score: 1000
+          score: serverConfig.elo.initialScore
         });
     }
     
@@ -126,6 +116,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
         message: error.errors[0].message
       });
     }
+    log.error(`Failed to update battle with ID: ${getRouterParams(event).id}`, error);
     throw createError({
       statusCode: 500,
       message: (error as Error).message || 'Failed to update battle'

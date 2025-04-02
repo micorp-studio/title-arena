@@ -2,6 +2,19 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { CreateBattleRequest, UpdateBattleRequest, VoteRequest } from '~/types';
+import type { H3Event } from 'h3';
+
+
+// Server configuration
+export const serverConfig = {
+  elo: {
+    initialScore: 1000,
+    kFactor: 32
+  },
+  options: {
+    minPerBattle: 2
+  }
+};
 
 // Generate unique IDs
 export function generateId(): string {
@@ -13,12 +26,20 @@ export function getCurrentTimestamp(): number {
   return Math.floor(Date.now() / 1000);
 }
 
+// Simple logger
+export function logger(context: string) {
+  return {
+    info: (message: string, data?: any) => console.log(`[INFO] ${context}: ${message}`, data || ''),
+    error: (message: string, error?: any) => console.error(`[ERROR] ${context}: ${message}`, error || '')
+  };
+}
+
 // Validation schemas
 export const battleSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters').max(100, 'Title must be at most 100 characters'),
   options: z.array(
     z.string().trim().min(1, 'Option cannot be empty').max(100, 'Option must be at most 100 characters')
-  ).min(2, 'At least 2 options are required').max(30, 'Maximum 30 options allowed')
+  ).min(serverConfig.options.minPerBattle, `At least ${serverConfig.options.minPerBattle} options are required`)
 }) satisfies z.ZodType<CreateBattleRequest>;
 
 export const updateBattleSchema = z.object({
@@ -26,7 +47,7 @@ export const updateBattleSchema = z.object({
   options: z.array(z.object({
     id: z.string().optional(),
     content: z.string().trim().min(1, 'Option cannot be empty').max(100, 'Option must be at most 100 characters')
-  })).min(2, 'At least 2 options are required').max(30, 'Maximum 30 options allowed')
+  })).min(serverConfig.options.minPerBattle, `At least ${serverConfig.options.minPerBattle} options are required`)
 }) satisfies z.ZodType<UpdateBattleRequest>;
 
 export const voteSchema = z.object({
@@ -34,17 +55,33 @@ export const voteSchema = z.object({
   loserId: z.string().uuid('Invalid loser ID')
 }) satisfies z.ZodType<VoteRequest>;
 
-// ELO rating calculator
-export function calculateNewRatings(winnerScore: number, loserScore: number): { winnerNew: number, loserNew: number } {
-  const K = 32; // K-factor: how much a single match affects the rating
-  
+// ELO rating calculator with configurable K-factor
+export function calculateNewRatings(
+  winnerScore: number, 
+  loserScore: number, 
+  kFactor = serverConfig.elo.kFactor
+): { winnerNew: number, loserNew: number } {
   // Calculate expected scores (probability of winning)
   const expectedWinner = 1 / (1 + Math.pow(10, (loserScore - winnerScore) / 400));
   const expectedLoser = 1 / (1 + Math.pow(10, (winnerScore - loserScore) / 400));
   
   // Calculate new ratings
-  const winnerNew = Math.round(winnerScore + K * (1 - expectedWinner));
-  const loserNew = Math.round(loserScore + K * (0 - expectedLoser));
+  const winnerNew = Math.round(winnerScore + kFactor * (1 - expectedWinner));
+  const loserNew = Math.round(loserScore + kFactor * (0 - expectedLoser));
   
   return { winnerNew, loserNew };
+}
+
+// Common request parameter extraction
+export function getBattleIdParam(event: H3Event): string {
+  const { id } = getRouterParams(event);
+  
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      message: 'Battle ID is required'
+    });
+  }
+  
+  return id;
 }

@@ -1,34 +1,26 @@
 // server/api/battles/[id]/vote.post.ts
 import { defineEventHandler } from 'h3';
-import { voteSchema, calculateNewRatings, generateId, getCurrentTimestamp } from '~/server/utils/helpers';
-import { useDrizzle, eq, tables } from '~/server/utils/drizzle';
+import { voteSchema, calculateNewRatings, generateId, getCurrentTimestamp, getBattleIdParam, logger } from '~/server/utils/helpers';
+import { useDrizzle, eq, tables, battleOperations } from '~/server/utils/drizzle';
 import { ZodError } from 'zod';
 import type { VoteRequest, VoteResponse } from '~/types';
 
+const log = logger('battles-vote');
+
 export default defineEventHandler(async (event): Promise<VoteResponse> => {
   try {
-    const { id } = getRouterParams(event);
-    
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        message: 'Battle ID is required'
-      });
-    }
+    const id = getBattleIdParam(event);
     
     // Parse and validate request body with Zod
     const body = await readBody<VoteRequest>(event);
     const { winnerId, loserId } = voteSchema.parse(body);
     
     const db = useDrizzle();
+    const { findBattleById, findTitleOptionById, incrementBattleVoteCount } = battleOperations();
     
     // Get the battle
-    const battle = await db
-      .select()
-      .from(tables.battles)
-      .where(eq(tables.battles.id, id))
-      .get();
-      
+    const battle = await findBattleById(id);
+    
     if (!battle) {
       throw createError({
         statusCode: 404,
@@ -37,17 +29,8 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
     }
     
     // Get the options
-    const winner = await db
-      .select()
-      .from(tables.titleOptions)
-      .where(eq(tables.titleOptions.id, winnerId))
-      .get();
-      
-    const loser = await db
-      .select()
-      .from(tables.titleOptions)
-      .where(eq(tables.titleOptions.id, loserId))
-      .get();
+    const winner = await findTitleOptionById(winnerId);
+    const loser = await findTitleOptionById(loserId);
     
     if (!winner || !loser) {
       throw createError({
@@ -66,8 +49,8 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
     
     // Calculate new scores
     const { winnerNew, loserNew } = calculateNewRatings(
-      winner.score ?? 1000,
-      loser.score ?? 1000
+      winner.score,
+      loser.score
     );
     
     // Update winner score
@@ -83,10 +66,7 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       .where(eq(tables.titleOptions.id, loserId));
     
     // Increment vote count on the battle
-    await db
-      .update(tables.battles)
-      .set({ voteCount: (battle.voteCount ?? 0) + 1 })
-      .where(eq(tables.battles.id, id));
+    await incrementBattleVoteCount(id);
     
     // Record the vote for analytics
     await db
@@ -104,13 +84,13 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       winner: {
         id: winner.id,
         content: winner.content,
-        oldScore: winner.score ?? 1000,
+        oldScore: winner.score,
         newScore: winnerNew
       },
       loser: {
         id: loser.id,
         content: loser.content,
-        oldScore: loser.score ?? 1000,
+        oldScore: loser.score,
         newScore: loserNew
       }
     };
@@ -122,6 +102,7 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
         message: error.errors[0].message
       });
     }
+    log.error(`Failed to process vote for battle ID: ${getRouterParams(event).id}`, error);
     throw createError({
       statusCode: 500,
       message: (error as Error).message || 'Failed to vote'
