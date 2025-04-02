@@ -2,12 +2,16 @@
 <script setup lang="ts">
 import { h, onMounted, nextTick } from 'vue';
 import type { TableColumn } from '@nuxt/ui';
-import { useBattleResults } from '~/composables/useBattleResults';
+import { useBattleDetails } from '~/composables/useBattleApi';
+import { useBattleHelpers } from '~/composables/useBattleHelpers';
 import { useConfetti } from '~/composables/useConfetti';
 import type { TitleOption } from '~/types';
 
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  pageTransition: {
+    name: 'slide-left'
+  }
 });
 
 // Extended TitleOption type with rank
@@ -17,21 +21,62 @@ interface RankedTitleOption extends TitleOption {
 
 const route = useRoute();
 const battleId = computed(() => route.params.id as string);
-const { showWinnerConfetti } = useConfetti();
+const { showWinnerConfetti, clearAllConfetti } = useConfetti();
+const { copyTitleText, truncateText } = useBattleHelpers();
+const toast = useToast();
 
-// Get battle results
-const {
-  battle,
-  sortedOptions,
-  winner,
-  winnerMessage,
-  hasResults,
-  asyncStatus,
-  state,
-  copyTitleToClipboard,
-} = useBattleResults(battleId.value);
+// Get battle details
+const { state, asyncStatus, refresh } = useBattleDetails();
 
-// Table columns for results
+// Get properly typed battle data
+const battle = computed(() => state.value?.data as any);
+
+// Get sorted options by score (descending)
+const sortedOptions = computed(() => {
+  if (!battle.value?.titleOptions) return [];
+  
+  return [...battle.value.titleOptions]
+    .sort((a, b) => b.score - a.score)
+    .map((option, index) => ({
+      ...option,
+      rank: index + 1
+    }));
+});
+
+// Check if we have results
+const hasResults = computed(() => sortedOptions.value.length > 0);
+
+// Get the winner
+const winner = computed(() => hasResults.value ? sortedOptions.value[0] : null);
+
+// Random winner message
+const winnerMessage = computed(() => {
+  const messages = [
+    "Champion",
+    "Best Choice",
+    "Winner",
+    "Top Pick",
+    "Perfect"
+  ];
+  return messages[Math.floor(Math.random() * messages.length)];
+});
+
+// Helper function to create a tooltip with copy functionality
+const createCopyTooltip = (content: string, rank: number) => {
+  const UTooltip = resolveComponent('UTooltip');
+  const opacity = rank === 1 ? '100' : 
+                 rank === 2 ? '90' : 
+                 rank === 3 ? '80' : '70';
+  
+  return h(UTooltip, { text: "Click to copy" }, () =>
+    h('button', { 
+      class: `truncate text-cold-500 max-w-full inline-block text-left cursor-pointer opacity-${opacity} hover:bg-cold-200/20 transition-colors`,
+      onClick: () => copyTitleText(content, toast),
+    }, content)
+  );
+};
+
+// Table columns for results with truncation for long content
 const columns: TableColumn<RankedTitleOption>[] = [
   {
     id: 'rank',
@@ -67,16 +112,16 @@ const columns: TableColumn<RankedTitleOption>[] = [
                      rank === 2 ? '90' : 
                      rank === 3 ? '80' : '70';
       
-      // Create tooltip component for "Click to copy" message
-      const UTooltip = resolveComponent('UTooltip');
-      
-      return h(UTooltip, { text: "Click to copy" }, () =>
-        h('button', { 
-          class: `${fontWeight} text-cold-500 opacity-${opacity} cursor-pointer`,
-          onClick: () => copyTitleToClipboard(content),
-        }, content)
-      );
+      // Use a container div to handle long content with truncation
+      return h('div', { class: 'max-w-md overflow-hidden' }, [
+        createCopyTooltip(content, rank || 0)
+      ]);
     },
+    meta: {
+      class: {
+        td: 'max-w-md break-words'
+      }
+    }
   },
   {
     accessorKey: 'score',
@@ -111,6 +156,11 @@ onMounted(async () => {
   }
 });
 
+// Clean up confetti on component unmount
+onBeforeUnmount(() => {
+  clearAllConfetti();
+});
+
 // Watch for winner changes (in case of data refresh)
 watch(() => winner.value, async (newWinner) => {
   if (newWinner) {
@@ -134,12 +184,37 @@ watch(() => winner.value, async (newWinner) => {
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
       <UCard>
-        <div class="py-8 text-center">
-          <div class="animate-pulse mb-4">
-            <div class="h-8 w-64 bg-white/10 rounded-md mx-auto"></div>
-            <div class="h-4 w-40 bg-white/5 rounded-md mx-auto mt-2"></div>
+        <div class="p-6 space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <USkeleton class="h-6 w-48 mb-2" />
+              <USkeleton class="h-4 w-24" />
+            </div>
+            <USkeleton class="h-10 w-32 rounded-md" />
           </div>
-          <p class="opacity-80">Loading battle results...</p>
+          
+          <!-- Winner skeleton -->
+          <USkeleton class="h-36 w-full rounded-lg mb-6" />
+          
+          <!-- Table skeleton -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-4 p-2">
+              <USkeleton class="h-6 w-12" />
+              <USkeleton class="h-6 flex-1" />
+              <USkeleton class="h-6 w-16" />
+            </div>
+            <div v-for="i in 3" :key="i" class="flex items-center gap-4 p-2">
+              <USkeleton class="h-6 w-12" />
+              <USkeleton class="h-6 flex-1" />
+              <USkeleton class="h-6 w-16" />
+            </div>
+          </div>
+          
+          <!-- Footer skeleton -->
+          <div class="flex justify-end gap-2 mt-6">
+            <USkeleton class="h-10 w-28 rounded-md" />
+            <USkeleton class="h-10 w-28 rounded-md" />
+          </div>
         </div>
       </UCard>
     </div>
@@ -163,9 +238,9 @@ watch(() => winner.value, async (newWinner) => {
       <UCard>
         <template #header>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <div>
-              <h1 class="text-xl font-bold font-mono">{{ battle.title }}</h1>
-              <p class="text-sm opacity-70">{{ battle.voteCount || 0 }} votes</p>
+            <div class="max-w-lg overflow-hidden">
+              <h1 class="text-xl font-bold font-mono truncate mb-1" :title="battle.title">{{ battle.title }}</h1>
+              <p class="text-md opacity-70">{{ battle.voteCount || 0 }} votes</p>
             </div>
             
             <div class="flex gap-2">
@@ -185,7 +260,7 @@ watch(() => winner.value, async (newWinner) => {
         <div v-if="winner" id="confetti-container" class="mb-6 mt-2">
           <UCard
             variant="subtle"
-            class="text-center bg-gradient-to-b from-cold-400/5 to-cold-400/0 border-col-500/50"
+            class="text-center bg-gradient-to-b from-cold-400/10 to-cold-400/5 border-col-500/50"
           >
             <!-- Trophy icon -->
             <div class="flex justify-center mb-3">
@@ -199,11 +274,12 @@ watch(() => winner.value, async (newWinner) => {
               </span>
             </div>
             
-            <!-- Winner title with tooltip -->
+            <!-- Winner title with tooltip, handling long content -->
             <UTooltip text="Click to copy">
               <button 
-                class="text-xl font-medium text-warm-500 mb-2 cursor-pointer" 
-                @click="copyTitleToClipboard(winner.content)"
+                class="text-xl font-medium text-warm-500 mb-2 cursor-pointer 
+                       max-w-full px-8 mx-auto block truncate hover:bg-warm-200/30"
+                @click="copyTitleText(winner.content, toast)"
               >
                 {{ winner.content }}
               </button>
@@ -271,3 +347,21 @@ watch(() => winner.value, async (newWinner) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Add specific styles for handling long content */
+.truncate-title {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  /* More aggressive truncation on mobile */
+  .truncate-title {
+    max-width: 200px;
+  }
+}
+</style>

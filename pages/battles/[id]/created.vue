@@ -109,7 +109,7 @@ const goHome = () => {
             <UInput
               :model-value="shareUrl"
               readonly
-              class="font-mono text-sm w-full px-2"
+              class="font-mono text-sm w-full px-2 py-1"
               :ui="{ trailing: 'pr-1' }"
               variant="subtle"
             >
@@ -118,9 +118,10 @@ const goHome = () => {
                   <UButton
                     :color="copied ? 'secondary' : 'neutral'"
                     variant="link"
-                    size="sm"
+                    size="md"
                     :icon="copied ? 'i-ph-check-bold' : 'i-ph-copy'"
                     aria-label="Copy to clipboard"
+                    class="px-2 mx-1 bg-warm-300/20"
                     @click="copyLink"
                   />
                 </UTooltip>

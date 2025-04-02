@@ -2,11 +2,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useBattleDetails, useBattleMutations } from '~/composables/useBattleApi';
+import { useFormHandling } from '~/composables/useFormHandling';
 import type { Battle, UpdateBattleRequest, TitleOption } from '~/types';
-
-definePageMeta({
-  layout: 'default'
-});
 
 const router = useRouter();
 const route = useRoute();
@@ -19,6 +16,22 @@ const { state, asyncStatus, refresh } = useBattleDetails();
 // Form state
 const title = ref('');
 const options = ref<{ id?: string; content: string }[]>([]);
+
+// Get form handling utilities
+const {
+  titleInputRef,
+  optionInputsRef,
+  formIsDirty,
+  formIsSubmitting,
+  registerOptionInput,
+  focusOptionInput,
+  handleTitleKeyDown,
+  handleOptionKeyDown,
+  validateTitle,
+  validateOptions,
+  markFormAsClean,
+  markFormAsDirty
+} = useFormHandling();
 
 // Initialize form with battle data once loaded
 watch(() => state.value?.data, (battleData) => {
@@ -36,26 +49,25 @@ watch(() => state.value?.data, (battleData) => {
     if (options.value.length === 0) {
       options.value.push({ content: '' });
     }
+    
+    // Reset dirty state after loading data
+    markFormAsClean();
   }
 }, { immediate: true });
 
-// Refs for inputs
-const titleInputRef = ref<HTMLInputElement | null>(null);
-const optionInputsRef = ref<HTMLInputElement[]>([]);
+// Watch for form changes to track dirty state
+watch([title, options], () => {
+  markFormAsDirty();
+}, { deep: true });
 
 // Validation
-const isTitleValid = computed(() => title.value.trim().length >= 3);
+const isTitleValid = computed(() => validateTitle(title.value));
 const areOptionsValid = computed(() => {
-  const nonEmptyOptions = options.value.filter(option => option.content.trim().length > 0);
-  return nonEmptyOptions.length >= 2;
+  return validateOptions(options.value.map(opt => opt.content));
 });
 const isFormValid = computed(() => isTitleValid.value && areOptionsValid.value);
 
 // Validation tooltips
-const titleTooltip = computed(() => 
-  !isTitleValid.value ? 'Title must be at least 3 characters' : ''
-);
-
 const formTooltip = computed(() => {
   if (!isTitleValid.value) return 'Title must be at least 3 characters';
   if (!areOptionsValid.value) return 'At least 2 non-empty options are required';
@@ -71,20 +83,6 @@ const battleData = computed(() => {
 const { 
   updateBattle: { mutate: updateBattleMutate, asyncStatus: updateStatus }
 } = useBattleMutations();
-
-// Focus an option input by index
-const focusOptionInput = (index: number) => {
-  nextTick(() => {
-    if (optionInputsRef.value[index]) {
-      const input = optionInputsRef.value[index];
-      input.focus();
-      
-      // Place cursor at the end
-      const length = input.value.length;
-      input.setSelectionRange(length, length);
-    }
-  });
-};
 
 // Add a new option field
 const addOption = () => {
@@ -110,31 +108,6 @@ const removeOption = (index: number) => {
   });
 };
 
-// Handle option key down
-const handleOptionKeyDown = (event: KeyboardEvent, index: number) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    
-    // If this is the last option, add a new one
-    if (index === options.value.length - 1) {
-      addOption();
-    } else {
-      // Otherwise focus the next option
-      focusOptionInput(index + 1);
-    }
-  }
-};
-
-// Handle title key down
-const handleTitleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    
-    // Focus the first option
-    focusOptionInput(0);
-  }
-};
-
 // Define global shortcuts
 defineShortcuts({
   // Tab from title to first option
@@ -149,9 +122,25 @@ defineShortcuts({
   }
 });
 
+// Navigation guard for unsaved changes
+onBeforeRouteLeave((to, from, next) => {
+  if (formIsDirty.value && !formIsSubmitting.value) {
+    if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
+
 // Submit form
 const handleSubmit = async () => {
   if (!isFormValid.value) return;
+
+  // Update submitting state
+  formIsSubmitting.value = true;
 
   // Filter out empty options
   const nonEmptyOptions = options.value.filter(option => option.content.trim().length > 0);
@@ -167,27 +156,25 @@ const handleSubmit = async () => {
       ...battleData
     });
     
+    // Mark form as clean after successful update
+    markFormAsClean();
+    
     toast.add({
       title: 'Battle updated',
       description: 'Your battle has been updated successfully.',
       color: 'primary'
     });
     
-    // Navigate to battle details page
-    router.push(`/battles/${battleId.value}/results`);
+    // Navigate to the dashboard
+    router.push('/');
   } catch (error) {
     toast.add({
       title: 'Error',
       description: error instanceof Error ? error.message : 'Failed to update battle',
       color: 'secondary'
     });
-  }
-};
-
-// Register option input refs
-const registerOptionInput = (el: any, index: number) => {
-  if (el) {
-    optionInputsRef.value[index] = el.inputRef;
+  } finally {
+    formIsSubmitting.value = false;
   }
 };
 </script>
@@ -212,29 +199,40 @@ const registerOptionInput = (el: any, index: number) => {
     <!-- Loading State -->
     <div v-if="asyncStatus === 'loading' && !battleData" class="max-w-xl mx-auto">
       <UCard>
-        <div class="py-8 text-center">
-          <div class="animate-pulse mb-4">
-            <div class="h-8 w-64 bg-white/10 rounded-md mx-auto"></div>
-            <div class="h-4 w-40 bg-white/5 rounded-md mx-auto mt-2"></div>
+        <div class="p-6 space-y-4">
+          <USkeleton class="h-8 w-2/3 mx-auto" />
+          <USkeleton class="h-4 w-1/2 mx-auto" />
+          
+          <div class="space-y-3 mt-6">
+            <USkeleton class="h-10 w-full" />
+            <div v-for="i in 3" :key="i" class="flex items-center gap-2">
+              <USkeleton class="h-10 flex-1" />
+              <USkeleton class="h-10 w-10 rounded-md" />
+            </div>
+            <USkeleton class="h-10 w-full" />
           </div>
-          <p class="opacity-80">Loading battle details...</p>
+          
+          <div class="flex justify-end gap-2 mt-6 pt-4">
+            <USkeleton class="h-10 w-24" />
+            <USkeleton class="h-10 w-32" />
+          </div>
         </div>
       </UCard>
     </div>
     
     <!-- Error State -->
     <div v-else-if="state.status === 'error'" class="max-w-xl mx-auto">
-    <UCard>
-      <div class="py-8 text-center">
-        <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-        <h3 class="font-mono text-xl mb-2">Error Loading Battle</h3>
-        <p class="opacity-80">{{ state.error?.message || 'Failed to load battle details' }}</p>
-        <UButton color="primary" to="/" class="mt-4">
-          Return Home
-        </UButton>
-      </div>
-    </UCard>
-  </div>
+      <UCard>
+        <div class="py-8 text-center">
+          <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
+          <h3 class="font-mono text-xl mb-2">Error Loading Battle</h3>
+          <p class="opacity-80">{{ state.error?.message || 'Failed to load battle details' }}</p>
+          <UButton color="primary" to="/" class="mt-4">
+            Return Home
+          </UButton>
+        </div>
+      </UCard>
+    </div>
     
     <!-- Form -->
     <UCard v-else-if="battleData" class="max-w-xl mx-auto">
@@ -248,7 +246,7 @@ const registerOptionInput = (el: any, index: number) => {
               color="primary"
               class="w-full"
               :ui="{ base: 'rounded-md' }"
-              @keydown="handleTitleKeyDown"
+              @keydown="(e: KeyboardEvent) => handleTitleKeyDown(e, options.map(o => o.content))"
               ref="titleInputRef"
             />
           </UFormField>
@@ -275,7 +273,7 @@ const registerOptionInput = (el: any, index: number) => {
                 :placeholder="`Option ${index + 1}`"
                 class="w-full option-input"
                 :ui="{ base: 'rounded-md' }"
-                @keydown="(e: KeyboardEvent) => handleOptionKeyDown(e, index)"
+                @keydown="(e: KeyboardEvent) => handleOptionKeyDown(e, index, options.map(o => o.content), addOption)"
                 :ref="(el) => registerOptionInput(el, index)"
               />
               
@@ -306,11 +304,11 @@ const registerOptionInput = (el: any, index: number) => {
         <!-- Submit -->
         <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
           <UButton
-            :to="`/`"
+            to="/"
             color="neutral"
             variant="outline"
             class="bg-transparent text-warm-500/90"
-            :disabled="updateStatus === 'loading'"
+            :disabled="formIsSubmitting || updateStatus === 'loading'"
           >
             Cancel
           </UButton>
@@ -320,8 +318,8 @@ const registerOptionInput = (el: any, index: number) => {
               type="submit"
               color="primary"
               icon="i-ph-check-circle"
-              :loading="updateStatus === 'loading'"
-              :disabled="updateStatus === 'loading' || !isFormValid"
+              :loading="formIsSubmitting || updateStatus === 'loading'"
+              :disabled="formIsSubmitting || updateStatus === 'loading' || !isFormValid"
             >
               Update Battle
             </UButton>

@@ -25,6 +25,12 @@ export function useVotingSession(battleId: string) {
     submitVote: { mutate: submitVoteMutate } 
   } = useBattleMutations();
 
+  // Animation timing constants
+  const ANIMATION_TIMING = {
+    VOTE_FEEDBACK: 700,
+    CARD_EXIT: 200
+  };
+
   // Flag to track if voting has been initialized
   const isInitialized = ref(false);
 
@@ -38,7 +44,7 @@ export function useVotingSession(battleId: string) {
   const completedPairs = ref(0);
   const isVoting = ref(false);
   const completed = ref(false);
-  const exitingPair = ref(false);  // New flag for card exit animation
+  const exitingPair = ref(false);  // Flag for card exit animation
 
   // Visual feedback state
   const selectedCard = ref<'A' | 'B' | null>(null);
@@ -132,8 +138,8 @@ export function useVotingSession(battleId: string) {
     stampPosition.value = generateRandomPosition();
     
     try {
-      // Allow animation to play (faster now - 700ms instead of 1000ms)
-      await new Promise(resolve => setTimeout(resolve, 700));
+      // Allow animation to play
+      await new Promise(resolve => setTimeout(resolve, ANIMATION_TIMING.VOTE_FEEDBACK));
       
       // Make API call and wait for it to complete
       await submitVoteMutate({
@@ -149,7 +155,7 @@ export function useVotingSession(battleId: string) {
       exitingPair.value = true;
       
       // Wait a moment for exit animation
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, ANIMATION_TIMING.CARD_EXIT));
       
       // Reset selection state
       selectedCard.value = null;
@@ -181,6 +187,14 @@ export function useVotingSession(battleId: string) {
       initVoting();
     }
   }, { immediate: true });
+  
+  // Clean up any resources when component unmounts
+  onBeforeUnmount(() => {
+    // Cancel any pending animations
+    if (isVoting.value) {
+      isVoting.value = false;
+    }
+  });
 
   return {
     // Data

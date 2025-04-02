@@ -29,21 +29,16 @@ export default defineNuxtRouteMiddleware((to, from) => {
     // Get levels for current routes
     const fromLevel = getPageLevel(from.path);
     const toLevel = getPageLevel(to.path);
-    console.log('fromLevel', fromLevel);
-    console.log('toLevel', toLevel);
     
     // Apply transition based on navigation direction
     if (toLevel > fromLevel) {
       // Going deeper in the navigation hierarchy
-      console.log('deeper')
       to.meta.pageTransition = { name: 'slide-left', mode: 'out-in' };
     } else if (toLevel < fromLevel) {
       // Going back in the navigation hierarchy
-      console.log('back')
       to.meta.pageTransition = { name: 'slide-right', mode: 'out-in' };
     } else {
       // Same level - subtle fade as default
-      console.log('same')
       to.meta.pageTransition = { name: 'slide-right', mode: 'out-in' };
     }
   });

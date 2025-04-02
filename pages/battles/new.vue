@@ -2,11 +2,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useBattleMutations } from '~/composables/useBattleApi';
+import { useFormHandling } from '~/composables/useFormHandling';
 import type { CreateBattleRequest } from '~/types';
-
-definePageMeta({
-  layout: 'default'
-});
 
 const router = useRouter();
 const toast = useToast();
@@ -15,16 +12,31 @@ const toast = useToast();
 const title = ref('');
 const options = ref<string[]>(['']);
 
-// Refs for inputs
-const titleInputRef = ref<HTMLInputElement | null>(null);
-const optionInputsRef = ref<HTMLInputElement[]>([]);
+// Get form handling utilities
+const {
+  titleInputRef,
+  optionInputsRef,
+  formIsDirty,
+  formIsSubmitting,
+  registerOptionInput,
+  focusOptionInput,
+  focusTitleInput,
+  handleTitleKeyDown,
+  handleOptionKeyDown,
+  validateTitle,
+  validateOptions,
+  markFormAsClean,
+  markFormAsDirty
+} = useFormHandling();
+
+// Watch for form changes to track dirty state
+watch([title, options], () => {
+  markFormAsDirty();
+}, { deep: true });
 
 // Validation
-const isTitleValid = computed(() => title.value.trim().length >= 3);
-const areOptionsValid = computed(() => {
-  const nonEmptyOptions = options.value.filter(option => option.trim().length > 0);
-  return nonEmptyOptions.length >= 2;
-});
+const isTitleValid = computed(() => validateTitle(title.value));
+const areOptionsValid = computed(() => validateOptions(options.value));
 const isFormValid = computed(() => isTitleValid.value && areOptionsValid.value);
 
 // Validation tooltips
@@ -40,20 +52,6 @@ const formTooltip = computed(() => {
 
 // Get mutation
 const { createBattle: { mutateAsync: createBattleMutate, asyncStatus: createStatus } } = useBattleMutations();
-
-// Focus an option input by index
-const focusOptionInput = (index: number) => {
-  nextTick(() => {
-    if (optionInputsRef.value[index]) {
-      const input = optionInputsRef.value[index];
-      input.focus();
-      
-      // Place cursor at the end
-      const length = input.value.length;
-      input.setSelectionRange(length, length);
-    }
-  });
-};
 
 // Add a new option field
 const addOption = () => {
@@ -79,31 +77,6 @@ const removeOption = (index: number) => {
   });
 };
 
-// Handle option key down
-const handleOptionKeyDown = (event: KeyboardEvent, index: number) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    
-    // If this is the last option, add a new one
-    if (index === options.value.length - 1) {
-      addOption();
-    } else {
-      // Otherwise focus the next option
-      focusOptionInput(index + 1);
-    }
-  }
-};
-
-// Handle title key down
-const handleTitleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    
-    // Focus the first option
-    focusOptionInput(0);
-  }
-};
-
 // Define global shortcuts
 defineShortcuts({
   // Tab from title to first option
@@ -118,9 +91,25 @@ defineShortcuts({
   }
 });
 
+// Navigation guard for unsaved changes
+onBeforeRouteLeave((to, from, next) => {
+  if (formIsDirty.value && !formIsSubmitting.value) {
+    if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
+
 // Submit form
 const handleSubmit = async () => {
   if (!isFormValid.value) return;
+
+  // Update submitting state
+  formIsSubmitting.value = true;
 
   // Filter out empty options
   const nonEmptyOptions = options.value.filter(option => option.trim().length > 0);
@@ -132,6 +121,9 @@ const handleSubmit = async () => {
 
   try {
     const createdBattle = await createBattleMutate(battleData);
+    
+    // Mark form as clean after successful submission
+    markFormAsClean();
     
     toast.add({
       title: 'Battle created',
@@ -147,13 +139,8 @@ const handleSubmit = async () => {
       description: error instanceof Error ? error.message : 'Failed to create battle',
       color: 'secondary'
     });
-  }
-};
-
-// Register option input refs
-const registerOptionInput = (el: any, index: number) => {
-  if (el) {
-    optionInputsRef.value[index] = el.inputRef;
+  } finally {
+    formIsSubmitting.value = false;
   }
 };
 </script>
@@ -187,7 +174,7 @@ const registerOptionInput = (el: any, index: number) => {
               color="primary"
               class="w-full"
               :ui="{ base: 'rounded-md' }"
-              @keydown="handleTitleKeyDown"
+              @keydown="handleTitleKeyDown($event, options)"
               ref="titleInputRef"
             />
           </UFormField>
@@ -214,7 +201,7 @@ const registerOptionInput = (el: any, index: number) => {
                 :placeholder="`Option ${index + 1}`"
                 class="w-full option-input"
                 :ui="{ base: 'rounded-md' }"
-                @keydown="(e: KeyboardEvent) => handleOptionKeyDown(e, index)"
+                @keydown="(e: KeyboardEvent) => handleOptionKeyDown(e, index, options, addOption)"
                 :ref="(el) => registerOptionInput(el, index)"
               />
               
@@ -249,7 +236,7 @@ const registerOptionInput = (el: any, index: number) => {
             color="neutral"
             variant="outline"
             class="bg-transparent text-warm-500/90"
-            :disabled="createStatus === 'loading'"
+            :disabled="formIsSubmitting"
           >
             Cancel
           </UButton>
@@ -259,8 +246,8 @@ const registerOptionInput = (el: any, index: number) => {
               type="submit"
               color="primary"
               icon="i-ph-check-circle"
-              :loading="createStatus === 'loading'"
-              :disabled="createStatus === 'loading' || !isFormValid"
+              :loading="formIsSubmitting || createStatus === 'loading'"
+              :disabled="formIsSubmitting || createStatus === 'loading' || !isFormValid"
             >
               Create Battle
             </UButton>

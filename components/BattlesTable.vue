@@ -5,7 +5,7 @@ import type { TableColumn } from '@nuxt/ui';
 import { useRoute, useRouter } from 'vue-router';
 import { useAllBattles, useBattleMutations } from '~/composables/useBattleApi';
 import { useBattleHelpers } from '~/composables/useBattleHelpers';
-import type { Battle } from '~/types';
+import type { Battle, TitleOption } from '~/types';
 
 const toast = useToast();
 const route = useRoute();
@@ -28,6 +28,65 @@ const showDeleteModal = ref(false);
 const deleteBattleName = ref('');
 const deleteBattleId = ref('');
 
+// Helper function to create a badge with render function (fixes non-function slot warning)
+const createBadge = (content: string, props = {}) => {
+  const UBadge = resolveComponent('UBadge');
+  return h(UBadge, {
+    size: 'md',
+    variant: 'subtle',
+    class: 'me-1 truncate max-w-[200px] inline-block',
+    title: content,
+    ...props
+  }, () => content);
+};
+
+// Helper function to format title options with badges
+const formatTitleOptions = (options: TitleOption[]) => {
+  if (!options || options.length === 0) return h('div', {}, 'No options');
+  
+  // Sort by score descending
+  const sortedOptions = [...options].sort((a, b) => b.score - a.score);
+  
+  const elements = [];
+  
+  // Add first option
+  if (sortedOptions.length > 0) {
+    elements.push(createBadge(sortedOptions[0].content));
+  }
+  
+  // Add second option if available
+  if (sortedOptions.length > 1) {
+    elements.push(createBadge(sortedOptions[1].content));
+  }
+  
+  // Add more indicator if needed
+  if (sortedOptions.length > 2) {
+    elements.push(h('span', { class: 'opacity-70 text-xs' }, `+ ${sortedOptions.length - 2} more`));
+  }
+  
+  return h('div', { class: 'flex items-center flex-wrap gap-y-1 align-center' }, elements);
+};
+
+// Helper function to create action buttons
+const createActionButton = (icon: string, tooltip: string, onClick: (e: MouseEvent) => void) => {
+  const UButton = resolveComponent('UButton');
+  const UTooltip = resolveComponent('UTooltip');
+  
+  return h(UTooltip, { text: tooltip }, () => 
+    h(UButton, {
+      color: 'neutral',
+      variant: 'ghost',
+      icon,
+      size: 'sm',
+      onClick: (e: MouseEvent) => {
+        e.stopPropagation();
+        onClick(e);
+      },
+      ariaLabel: tooltip
+    })
+  );
+};
+
 // Column definitions for the table
 const columns = computed<TableColumn<Battle>[]>(() => [
   {
@@ -38,7 +97,7 @@ const columns = computed<TableColumn<Battle>[]>(() => [
       
       return h('div', { class: 'flex flex-col' }, [
         h('div', { class: 'font-medium text-(--ui-text-highlighted)' }, battle.title),
-        h('div', { class: 'text-sm text-(--ui-text-muted) mt-1' }, formatTitles(battle.titleOptions)),
+        formatTitleOptions(battle.titleOptions)
       ]);
     }
   },
@@ -71,49 +130,11 @@ const columns = computed<TableColumn<Battle>[]>(() => [
     header: '',
     cell: ({ row }) => {
       const battle = row.original;
-      const UTooltip = resolveComponent('UTooltip');
-      const UButton = resolveComponent('UButton');
       
       return h('div', { class: 'flex items-center justify-end gap-2' }, [
-        h(UTooltip, { text: 'Share' }, () => 
-          h(UButton, {
-            color: 'neutral',
-            variant: 'ghost',
-            icon: 'i-ph-share-network',
-            size: 'sm',
-            onClick: (e: Event) => {
-              e.stopPropagation();
-              openShareModal(battle);
-            },
-            ariaLabel: 'Share battle'
-          })
-        ),
-        h(UTooltip, { text: 'Edit' }, () => 
-          h(UButton, {
-            color: 'neutral',
-            variant: 'ghost',
-            icon: 'i-ph-pencil-simple',
-            size: 'sm',
-            onClick: (e: Event) => {
-              e.stopPropagation(); 
-              router.push(`/battles/${battle.id}/edit`);
-            },
-            ariaLabel: 'Edit battle'
-          })
-        ),
-        h(UTooltip, { text: 'Delete' }, () => 
-          h(UButton, {
-            color: 'secondary',
-            variant: 'ghost',
-            icon: 'i-ph-trash',
-            size: 'sm',
-            onClick: (e: Event) => {
-              e.stopPropagation(); 
-              openDeleteModal(battle);
-            },
-            ariaLabel: 'Delete battle'
-          })
-        )
+        createActionButton('i-ph-share-network', 'Share', () => openShareModal(battle)),
+        createActionButton('i-ph-pencil-simple', 'Edit', () => router.push(`/battles/${battle.id}/edit`)),
+        createActionButton('i-ph-trash', 'Delete', () => openDeleteModal(battle))
       ]);
     },
     meta: {
@@ -173,7 +194,25 @@ function handleRowClick(row: any) {
       :empty="state.data?.length === 0 ? 'No battles found' : undefined"
       @select="handleRowClick"
       class="w-full"
-    />
+    >
+      <!-- Loading state with skeletons -->
+      <template #loading>
+        <div class="p-4 space-y-4">
+          <div v-for="i in 3" :key="i" class="flex items-center space-x-4">
+            <div class="flex-1">
+              <USkeleton class="h-6 w-full mb-2" />
+              <div class="flex space-x-2">
+                <USkeleton class="h-4 w-24" />
+                <USkeleton class="h-4 w-24" />
+              </div>
+            </div>
+            <USkeleton class="h-4 w-24" />
+            <USkeleton class="h-4 w-16" />
+            <USkeleton class="h-8 w-24 rounded-md" />
+          </div>
+        </div>
+      </template>
+    </UTable>
     
     <!-- Share Modal -->
     <UModal v-model="showShareModal" :title="`Share '${shareModalTitle}'`" :ui="{ footer: 'justify-end' }">

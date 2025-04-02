@@ -44,7 +44,7 @@ const {
     <div class="max-w-3xl mx-auto mb-6">
       <UBreadcrumb :items="[
         { label: 'Home', icon: 'i-ph-house', to: '/' },
-        { label: battle?.title || 'Battle', icon: 'i-ph-trophy', to: `/battles/${battleId}` },
+        { label: battle?.title || 'Battle', icon: 'i-ph-trophy', to: `/battles/${battleId}/results` },
         { label: 'Vote', icon: 'i-ph-check-square' }
       ]" />
     </div>
@@ -52,12 +52,18 @@ const {
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
       <UCard>
-        <div class="py-8 text-center">
-          <div class="animate-pulse mb-4">
-            <div class="h-8 w-64 bg-white/10 rounded-md mx-auto"></div>
-            <div class="h-4 w-40 bg-white/5 rounded-md mx-auto mt-2"></div>
+        <div class="p-6 space-y-6">
+          <USkeleton class="h-6 w-full" />
+          <USkeleton class="h-4 w-1/2" />
+          
+          <!-- Progress skeleton -->
+          <USkeleton class="h-6 w-full rounded-full mt-8" />
+          
+          <!-- Cards skeleton -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <USkeleton class="h-40 rounded-lg" />
+            <USkeleton class="h-40 rounded-lg" />
           </div>
-          <p class="opacity-80">Loading battle details...</p>
         </div>
       </UCard>
     </div>
@@ -84,18 +90,25 @@ const {
           <!-- Progress bar -->
           <div class="mb-8">
             <UProgress 
-              :model-value="completedPairs" 
-              :max="totalPairs"
+              :model-value="progressPercentage" 
               color="primary"
               size="lg"
               class="mb-2"
             />
+            <p class="text-xs text-right font-mono opacity-70">
+              {{ completedPairs }} of {{ totalPairs }} duels
+            </p>
           </div>
           
-          <p class="text-center mb-6 font-medium">Which title do you prefer?</p>
+          <p class="text-center mb-6 font-medium">Which one do you prefer?</p>
           
           <!-- Card container with transition group -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="{ 'animate-cards-out': exitingPair }">
+          <div 
+            class="grid grid-cols-1 md:grid-cols-2 gap-6" 
+            :class="{ 'animate-cards-out': exitingPair }"
+            role="region"
+            aria-label="Voting options"
+          >
             <!-- Option A -->
             <VoteCard
               :option="currentPair.optionA"
@@ -121,14 +134,6 @@ const {
               :is-positive="selectedCard === 'B'"
               @select="submitVote(currentPair.optionB.id, currentPair.optionA.id, 'B')"
             />
-          </div>
-        </div>
-        
-        <!-- Loading when complete (will redirect) -->
-        <div v-else-if="completed" class="py-10 text-center">
-          <div class="flex flex-col items-center justify-center">
-            <UIcon name="i-ph-arrow-circle-right" class="text-5xl mb-4 text-cold-500/80 animate-pulse" variant="outline" />
-            <p class="mb-2 text-xl">Taking you to results...</p>
           </div>
         </div>
         
