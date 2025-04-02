@@ -54,6 +54,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
     }
     
     // Return the full battle with options
+    log.info(`Battle "${validData.title.slice(0, 20)}" created successfully`);
     return mapBattleRecord(battle);
   } catch (error) {
     // Handle Zod validation errors

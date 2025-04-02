@@ -306,7 +306,7 @@ const registerOptionInput = (el: any, index: number) => {
         <!-- Submit -->
         <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
           <UButton
-            :to="`/battles/${battleId}/results`"
+            :to="`/`"
             color="neutral"
             variant="outline"
             class="bg-transparent text-warm-500/90"

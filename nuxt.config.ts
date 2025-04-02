@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts
 export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
@@ -26,6 +26,14 @@ export default defineNuxtConfig({
 
   ui: {
     colorMode: false
+  },
+
+  // Add default page transition
+  app: {
+    pageTransition: { 
+      name: 'slide-right', 
+      mode: 'out-in' 
+    }
   },
 
   compatibilityDate: '2025-03-25'
