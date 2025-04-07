@@ -192,7 +192,7 @@ const handleSubmit = async () => {
     
     <!-- Header -->
     <div class="mb-6 text-center">
-      <h1 class="text-3xl font-bold font-mono">Edit Battle</h1>
+      <h1 class="text-3xl font-bold">Edit Battle</h1>
       <p class="mt-2 opacity-80">Update your battle options</p>
     </div>
     
@@ -225,7 +225,7 @@ const handleSubmit = async () => {
       <UCard>
         <div class="py-8 text-center">
           <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-          <h3 class="font-mono text-xl mb-2">Error Loading Battle</h3>
+          <h3 class="text-xl mb-2">Error Loading Battle</h3>
           <p class="opacity-80">{{ state.error?.message || 'Failed to load battle details' }}</p>
           <UButton color="primary" to="/" class="mt-4">
             Return Home

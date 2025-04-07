@@ -87,7 +87,7 @@ const columns: TableColumn<RankedTitleOption>[] = [
                      rank === 2 ? '90' : 
                      rank === 3 ? '80' : '70';
       
-      return h('div', { class: `text-center font-mono text-cold-500 opacity-${opacity}` }, rank);
+      return h('div', { class: `text-center text-(--ui-yt-200) opacity-${opacity}` }, rank);
     },
     meta: {
       class: {
@@ -136,7 +136,7 @@ const columns: TableColumn<RankedTitleOption>[] = [
                      rank === 3 ? '80' : '70';
       
       return h('div', { 
-        class: `text-right font-mono text-cold-500 opacity-${opacity}`
+        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
       }, score);
     },
     meta: {
@@ -224,7 +224,7 @@ watch(() => winner.value, async (newWinner) => {
       <UCard>
         <div class="py-8 text-center">
           <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-          <h3 class="font-mono text-xl mb-2">Error Loading Results</h3>
+          <h3 class="text-xl mb-2">Error Loading Results</h3>
           <p class="opacity-80">{{ state.error?.message || 'Failed to load battle results' }}</p>
           <UButton color="primary" to="/" class="mt-4">
             Return Home
@@ -239,7 +239,7 @@ watch(() => winner.value, async (newWinner) => {
         <template #header>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div class="max-w-lg overflow-hidden">
-              <h1 class="text-xl font-bold font-mono truncate mb-1" :title="battle.title">{{ battle.title }}</h1>
+              <h1 class="text-xl font-bold truncate mb-1" :title="battle.title">{{ battle.title }}</h1>
               <p class="text-md opacity-70">{{ battle.voteCount || 0 }} votes</p>
             </div>
             
@@ -285,7 +285,7 @@ watch(() => winner.value, async (newWinner) => {
               </button>
             </UTooltip>
             
-            <p class="text-sm font-mono text-warm-500/90">
+            <p class="text-sm text-(--ui-yt-400)">
               Score: {{ winner.score }}
             </p>
           </UCard>
@@ -299,8 +299,8 @@ watch(() => winner.value, async (newWinner) => {
             base: 'min-w-full text-left rtl:text-right',
             thead: 'border-b border-white/5',
             tr: 'hover:bg-white/2 transition-colors',
-            th: 'px-4 py-3 text-sm opacity-70 font-medium',
-            td: 'px-4 py-3'
+            th: 'px-4 py-3 text-sm font-medium text-(--ui-yt-400) uppercase',
+            td: 'px-4 py-3 text-(--ui-yt-400)'
           }"
         >
           <!-- Empty state -->

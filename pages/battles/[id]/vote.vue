@@ -36,6 +36,13 @@ const {
   // Actions
   submitVote
 } = useVotingSession(battleId.value);
+
+// Generate a single pair seed that changes with each new pair
+// This ensures both options share the same visual elements
+const pairSeed = computed(() => {
+  // Base it on completedPairs to change with each vote
+  return Math.floor(Math.random() * 1000000) + completedPairs.value * 999;
+});
 </script>
 
 <template>
@@ -51,7 +58,7 @@ const {
     
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
-      <UCard>
+      <UCard class="ring-0">
         <div class="p-6 space-y-6">
           <USkeleton class="h-6 w-full" />
           <USkeleton class="h-4 w-1/2" />
@@ -73,7 +80,7 @@ const {
       <UCard>
         <div class="py-8 text-center">
           <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-          <h3 class="font-mono text-xl mb-2">Error Loading Battle</h3>
+          <h3 class="text-xl mb-2">Error Loading Battle</h3>
           <p class="opacity-80">{{ state.error?.message || 'Failed to load battle details' }}</p>
           <UButton color="primary" to="/" class="mt-4">
             Return Home
@@ -83,8 +90,8 @@ const {
     </div>
     
     <!-- Voting interface -->
-    <div v-else-if="battle" class="max-w-3xl mx-auto">
-      <UCard>
+    <div v-else-if="battle" class="max-w-3xl mx-auto ring-0">
+      <UCard class="ring-0 bg-(--ui-yt-800) text-(--ui-yt-200)">
         <!-- Active voting session -->
         <div v-if="!completed && currentPair.optionA && currentPair.optionB" class="py-4">
           <!-- Progress bar -->
@@ -92,10 +99,13 @@ const {
             <UProgress 
               :model-value="progressPercentage" 
               color="primary"
-              size="lg"
+              size="md"
               class="mb-2"
+              :ui="{
+                base: 'bg-(--ui-yt-600)'
+              }"
             />
-            <p class="text-xs text-right font-mono opacity-70">
+            <p class="text-xs text-right text-(--ui-yt-400)">
               {{ completedPairs }} of {{ totalPairs }} duels
             </p>
           </div>
@@ -109,9 +119,10 @@ const {
             role="region"
             aria-label="Voting options"
           >
-            <!-- Option A -->
+            <!-- Option A - Both options use the same pairSeed -->
             <VoteCard
               :option="currentPair.optionA"
+              :seed="pairSeed"
               :is-selected="selectedCard === 'A'"
               :is-rejected="rejectedCard === 'A'"
               :is-disabled="isVoting"
@@ -122,9 +133,10 @@ const {
               @select="submitVote(currentPair.optionA.id, currentPair.optionB.id, 'A')"
             />
             
-            <!-- Option B -->
+            <!-- Option B - Same pairSeed to ensure visual consistency -->
             <VoteCard
               :option="currentPair.optionB"
+              :seed="pairSeed"
               :is-selected="selectedCard === 'B'"
               :is-rejected="rejectedCard === 'B'"
               :is-disabled="isVoting"
@@ -140,7 +152,7 @@ const {
         <!-- Not enough options -->
         <div v-else-if="battle.titleOptions?.length < 2" class="py-8 text-center">
           <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-          <h3 class="font-mono text-xl mb-2">Not Enough Options</h3>
+          <h3 class="text-xl mb-2">Not Enough Options</h3>
           <p class="opacity-80 mb-6">This battle needs at least 2 options to vote.</p>
           
           <UButton 

@@ -82,7 +82,7 @@ const goHome = () => {
       <UCard>
         <div class="py-8 text-center">
           <UIcon name="i-ph-warning-circle" class="text-warm-300 text-4xl mb-3" />
-          <h3 class="font-mono text-xl mb-2">Error Loading Battle</h3>
+          <h3 class="text-xl mb-2">Error Loading Battle</h3>
           <p class="opacity-80">{{ state.error?.message || 'Failed to load battle details' }}</p>
           <UButton color="primary" to="/" class="mt-4">
             Return Home
@@ -97,10 +97,10 @@ const goHome = () => {
         <div class="py-8 text-center">
           <!-- Success icon -->
           <div class="flex justify-center mb-4">
-            <UIcon name="i-ph-check-circle" class="text-cold-500 text-5xl" />
+            <UIcon name="i-ph-check-circle" class="text-(--ui-yt-200) text-5xl" />
           </div>
           
-          <h2 class="text-2xl font-bold font-mono mb-2">Battle Created!</h2>
+          <h2 class="text-2xl font-bold mb-2">Battle Created!</h2>
           <p class="text-lg mb-8">{{ battle.title }}</p>
           
           <!-- Share URL section -->

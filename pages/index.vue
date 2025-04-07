@@ -42,8 +42,8 @@ const createBadge = (content: string, props = {}) => {
   const UBadge = resolveComponent('UBadge');
   return h(UBadge, {
     size: 'md',  
-    variant: 'subtle',
-    class: 'me-1 truncate max-w-[200px] inline-block',
+    variant: 'soft',
+    class: 'me-1 truncate max-w-[200px] inline-block bg-(--ui-yt-600)',
     title: content,
     ...props
   }, () => content);
@@ -71,11 +71,11 @@ const formatTitleOptions = (options: TitleOption[]): any => {
   // Add more indicator if needed
   if (sortedOptions.length > 2) {
     elements.push(
-      h('span', { class: 'opacity-70 text-xs text-cold-500' }, `+ ${sortedOptions.length - 2} more`)
+      h('span', { class: 'opacity-70 text-xs text-(--ui-yt-400)' }, `+ ${sortedOptions.length - 2} more`)
     );
   }
   
-  return h('div', { class: 'flex items-center flex-wrap gap-y-1 align-center' }, elements);
+  return h('div', { class: 'flex items-center flex-wrap align-center' }, elements);
 };
 
 // Create a tooltip button with proper function slots
@@ -83,10 +83,11 @@ const createTooltipButton = (icon: string, tooltip: string, onClick: (e: MouseEv
   const UTooltip = resolveComponent('UTooltip');
   const UButton = resolveComponent('UButton');
   
-  return h(UTooltip, { text: tooltip }, () => 
+  return h(UTooltip, { text: tooltip, variant: 'ghost' }, () => 
     h(UButton, {
       color,
       variant: 'ghost',
+      class: 'text-(--ui-yt-400) hover:text-(--ui-yt-200) hover:bg-transparent hover:cursor-pointer',
       icon,
       size: 'md',
       onClick: (e: MouseEvent) => {
@@ -106,9 +107,9 @@ const columns: TableColumn<Battle>[] = [
     cell: ({ row }) => {
       const battle = row.original;
       
-      return h('div', { class: 'flex flex-col' }, [
+      return h('div', { class: 'flex flex-col gap-y-1' }, [
         h('div', { 
-          class: 'font-mono font-medium truncate text-cold-500',
+          class: 'font-medium truncate text-(--ui-yt-200)',
           title: battle.title
         }, battle.title),
         formatTitleOptions(battle.titleOptions),
@@ -119,14 +120,14 @@ const columns: TableColumn<Battle>[] = [
     accessorKey: 'createdAt',
     header: 'CREATED',
     cell: ({ row }) => {
-      return h('div', { class: 'whitespace-nowrap font-mono text-sm text-cold-500' }, formatDate(row.original.createdAt));
+      return h('div', { class: 'whitespace-nowrap text-sm text-(--ui-yt-400)' }, formatDate(row.original.createdAt));
     }
   },
   {
     accessorKey: 'voteCount',
     header: () => h('div', { class: 'text-center' }, 'VOTES'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-mono text-cold-500' }, getVoteCountLabel(row.original.voteCount));
+      return h('div', { class: 'text-center text-(--ui-yt-400)' }, getVoteCountLabel(row.original.voteCount));
     },
     meta: {
       class: {
@@ -227,7 +228,7 @@ function handleRowClick(row: any) {
 const emptyState = () => {
   return h('div', { class: 'flex flex-col items-center justify-center py-16' }, [
     h('div', { class: 'text-6xl mb-6' }, h(resolveComponent('UIcon'), { name: 'i-ph-empty', size: 'xl' })),
-    h('h3', { class: 'text-xl font-mono mb-2' }, 'No battles found'),
+    h('h3', { class: 'text-xl mb-2' }, 'No battles found'),
     h('p', { class: 'text-center opacity-80 mb-6 max-w-md' }, 
       'Create your first battle to start gathering feedback on which title options resonate the most with your audience.'
     ),
@@ -244,38 +245,19 @@ const emptyState = () => {
 
 <template>
   <div class="container mx-auto px-4 py-8 md:py-12">
-    <!-- Header -->
-    <div class="mb-8 md:flex px-2 items-center justify-between">
-      <div>
-        <h1 class="text-3xl md:text-4xl font-bold font-mono">
-          Celsius
-        </h1>
-        <p class="mt-2 ml-1 opacity-70">Easy choices. Hard data.</p>
-      </div>
-
-      <div class="flex gap-4 mt-4 md:mt-0">
-        <UButton 
-          icon="i-ph-plus-bold"
-          to="/battles/new"
-          variant="solid"
-          color="primary"
-          size="lg"
-        >
-          Create Battle
-        </UButton>
-      </div>
-    </div>
-    
     <!-- Table -->
-    <UCard class="overflow-hidden">
+    <UCard class="ring-0">
       <UTable
         :columns="columns"
         :data="state.data || []"
         :loading="asyncStatus === 'loading' || deleteStatus === 'loading'"
         loading-color="primary"
         :ui="{ 
-          tr: 'cursor-pointer hover:bg-white/5 transition-colors rounded-lg',
-          td: 'max-w-xs overflow-hidden'
+          th: 'text-(--ui-yt-400) cursor-default',
+          tr: 'cursor-pointer transition-colors rounded-lg',
+          td: 'max-w-xs overflow-hidden text-(--ui-yt-400)',
+          tbody: 'divide-y divide-(--ui-yt-600) [&>tr]:data-[selectable=true]:hover:bg-(--ui-yt-600)'
+
         }"
         class="w-full"
         @select="handleRowClick"

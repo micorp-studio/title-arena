@@ -4,94 +4,41 @@
 
 :root {
   /* Typography */
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'Fraunces', serif;
-  
-  /* Cold Colors - define them directly */
-  --color-cold-100: #EDF1F9;
-  --color-cold-200: #BFD5F8;
-  --color-cold-300: #82AAF7;
-  --color-cold-400: #223466;
-  --color-cold-500: #050A2D;
-  
-  /* Warm Colors - define them directly */
-  --color-warm-100: #F6F1EE;
-  --color-warm-200: #EDD5CE;
-  --color-warm-300: #C37554;
-  --color-warm-400: #712303;
-  --color-warm-500: #240800;
-  
-  /* Define radius */
-  --ui-radius: var(--radius-xl);
-  
-  /* Set UI colors */
-  --ui-primary: var(--color-warm-400);
-  --ui-secondary: var(--color-cold-400);
-  
-  /* Customize text colors */
-  --ui-text: #240800;
-  --ui-text-highlighted: #240800;
-  --ui-text-muted: #712303;
-  
-  /* Customize background */
-  --ui-bg: var(--color-cold-100);
-  --ui-bg-muted: var(--color-cold-100, 0.5);
-  
-  /* Card and border colors */
-  --ui-border: transparent;
+  --font-yt: 'Roboto', sans-serif;
+
+  /* YouTube Colors */
+  --yt-200: #F1F1F1;
+  --yt-400: #A6A097;
+  --yt-600: #272727;
+  --yt-800: #0F0F0F;
+
+  /* UI Colors */
+  --ui-yt-200: #F1F1F1;
+  --ui-yt-400: #A6A097;
+  --ui-yt-600: #272727;
+  --ui-yt-800: #0F0F0F;
+
+  --ui-bg: var(--yt-800)
 }
 
 @theme static {
   /* Typography */
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'Fraunces', serif;
-  
-  /* Cold Colors */
-  --color-cold-100: #EDF1F9;
-  --color-cold-200: #BFD5F8;
-  --color-cold-300: #82AAF7;
-  --color-cold-400: #223466;
-  --color-cold-500: #050A2D;
-  
-  /* Warm Colors */
-  --color-warm-100: #F6F1EE;
-  --color-warm-200: #EDD5CE;
-  --color-warm-300: #C37554;
-  --color-warm-400: #712303;
-  --color-warm-500: #240800;
-}
+  --font-yt: 'Roboto', sans-serif;
 
-/* Font classes */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-mono);
-  font-weight: 600;
+  /* YouTube Colors */
+  --yt-200: #F1F1F1;
+  --yt-400: #A6A097;
+  --yt-600: #272727;
+  --yt-800: #0F0F0F;
+
+  --color-primary: var(--yt-200);
+  --color-secondary: var(--yt-400);
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-yt);
   position: relative;
   min-height: 100vh;
-  background-color: #F6F1EE;
-  color: #240800;
-}
-
-/* Custom utility classes */
-.font-mono {
-  font-family: var(--font-mono);
-}
-
-.mesh-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.glassmorphism {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(237, 241, 249, 0.05);
-  box-shadow: 0 8px 32px rgba(36, 8, 0, 0.1);
+  background-color: var(--yt-800);
+  color: var(--yt-200);
 }

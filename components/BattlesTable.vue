@@ -218,7 +218,7 @@ function handleRowClick(row: any) {
     <UModal v-model="showShareModal" :title="`Share '${shareModalTitle}'`" :ui="{ footer: 'justify-end' }">
       <template #body>
         <p class="mb-4">Share this battle with others to collect votes. The link has been copied to your clipboard.</p>
-        <p class="font-mono text-sm p-3 bg-white/5 rounded-lg break-all">
+        <p class="font-mono text-sm p-3 bg-(--ui-yt-600) rounded-lg break-all">
           {{ `/battles/${currentBattleId}/vote` }}
         </p>
       </template>

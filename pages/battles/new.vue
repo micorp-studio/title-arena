@@ -157,7 +157,7 @@ const handleSubmit = async () => {
     
     <!-- Header -->
     <div class="mb-6 text-center">
-      <h1 class="text-3xl font-bold font-mono">Create Battle</h1>
+      <h1 class="text-3xl font-bold">Create Battle</h1>
       <p class="mt-2 opacity-80">Set up the options that will compete</p>
     </div>
     
