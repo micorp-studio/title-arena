@@ -50,12 +50,12 @@ const handleSelect = () => {
     <div class="relative rounded-xl overflow-hidden mb-3.5">
       <img 
         :src="metadata.thumbnailUrl" 
-        class="w-full aspect-video object-cover" 
+        class="w-full aspect-video object-cover sepia blur-sm" 
         :alt="option.content"
       />
       
       <!-- Duration badge -->
-      <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 text-xs font-medium text-white rounded-[4px]">
+      <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 text-xs font-medium text-white rounded-[4px] blur-[1px]">
         {{ metadata.videoDuration }}
       </div>
       
@@ -78,13 +78,14 @@ const handleSelect = () => {
     <!-- Video info section -->
     <div class="flex gap-3">
       <!-- Channel avatar -->
-      <div class="flex-shrink-0 ring-0 border-0">
-        <UAvatar
-          :src="metadata.user.avatarUrl"
-          size="lg"
+      <div class="flex-shrink-0 relative rounded-full overflow-hidden" style="width: 40px; height: 40px;">
+        <img 
+          :src="metadata.user.avatarUrl" 
           :alt="`${metadata.user.username} avatar`"
+          class="absolute inset-0 w-full h-full object-cover sepia filter blur-xs"
         />
       </div>
+
       
       <!-- Title and metadata -->
       <div class="flex-grow">
@@ -100,7 +101,7 @@ const handleSelect = () => {
 
         
         <!-- Channel name with verified badge if applicable -->
-        <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1">
+        <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1 blur-[1px]">
           <span>{{ metadata.user.username }}</span>
           <UIcon 
             v-if="metadata.isVerified" 
@@ -110,7 +111,7 @@ const handleSelect = () => {
         </div>
         
         <!-- View count and time ago -->
-        <div class="text-[0.9rem] text-(--ui-yt-400) flex items-center">
+        <div class="text-[0.9rem] text-(--ui-yt-400) flex items-center blur-[1px]">
           <span>{{ metadata.viewCount }}</span>
           <span class="mx-1">•</span>
           <span>{{ metadata.timeAgo }}</span>
@@ -118,7 +119,7 @@ const handleSelect = () => {
       </div>
       
       <!-- Video menu button - positioned to the right -->
-      <div class="cursor-pointer self-start mt-[2px]">
+      <div class="cursor-pointer self-start mt-[2px] blur-[1px]">
         <UIcon name="i-lucide-more-vertical" class="h-6 w-6 text-(--ui-yt-200)/90"/>
       </div>
     </div>
