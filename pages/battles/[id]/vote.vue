@@ -112,8 +112,6 @@ watch(pairSeed, async (newSeed) => {
         <!-- Active voting session -->
         <div v-if="!completed && currentPair.optionA && currentPair.optionB" class="py-4">
           
-          <!-- <p class="text-center mb-6 font-medium">Which one do you prefer?</p> -->
-          
           <!-- Card container with transition group -->
           <div 
             class="grid grid-cols-1 md:grid-cols-2 gap-6" 
@@ -168,7 +166,8 @@ watch(pairSeed, async (newSeed) => {
         </div>
 
         <!-- Progress bar -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 max-w-xl w-full">
+        <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 max-w-xl w-full">
+          <p class="text-center text-(--ui-yt-400) mb-6">Quelle vidéo donne le plus envie de cliquer ?</p>
           <UProgress 
             :model-value="progressPercentage" 
             color="primary"

@@ -162,7 +162,7 @@ const handleSubmit = async () => {
     </div>
     
     <!-- Form -->
-    <UCard class="max-w-xl mx-auto ring-(--ui-yt-400)/80">
+    <UCard class="max-w-xl mx-auto ring-(--ui-yt-400)/20 bg-(--ui-yt-600)/30" :ui="{ body: 'border-0' }">
       <form @submit.prevent="handleSubmit" class="space-y-10">
         <!-- Battle Title -->
         <div class="flex flex-col gap-1">
@@ -230,7 +230,7 @@ const handleSubmit = async () => {
         </div>
         
         <!-- Submit -->
-        <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
+        <div class="flex justify-end gap-4 pt-2">
           <UButton
             to="/"
             color="neutral"

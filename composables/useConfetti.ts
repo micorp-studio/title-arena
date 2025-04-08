@@ -15,16 +15,29 @@ export function useConfetti() {
 
   // Default colors matching the application theme
   const defaultColors = [
-    '#EDF1F9', '#BFD5F8', '#82AAF7', '#223466',
-    '#F6F1EE', '#EDD5CE', '#C37554', '#712303',
+    // YouTube's signature red
+    '#FF0000', // Primary brand red
+    '#CC0000', // Darker red for hover
+    '#990000', // Even darker red
+    
+    // YouTube's dark mode background colors
+    '#0F0F0F', // Main background
+    '#212121', // Card/element background
+    '#303030', // Borders, dividers
+    
+    // YouTube's text colors
+    '#FFFFFF', // White text
+    '#AAAAAA', // Secondary text
+    '#717171', // Muted text
   ];
+  
 
   // Show winner confetti with configurable options
   const showWinnerConfetti = (options: ConfettiOptions = {}) => {
     const {
       duration = 2500,
       colors = defaultColors,
-      particleCount = 15,
+      particleCount = 10,
       spread = 70,
       disableForReducedMotion = true
     } = options;

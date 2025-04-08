@@ -15,7 +15,7 @@
           <NuxtLink to="/" class="flex items-center">
             <span class="text-2xl font-bold tracking-tighter flex items-center">
               <UIcon name="i-ph-youtube-logo-fill" class="text-red-500" size="26" />
-              <span class="text-(--ui-yt-200) font-yt-logo">Celsius</span>
+              <span class="text-(--ui-yt-200) font-extrabold">Celsius</span>
             </span>
           </NuxtLink>
         </div>
