@@ -89,8 +89,7 @@ const handleSelect = () => {
       
       <!-- Title and metadata -->
       <div class="flex-grow">
-        <!-- Video title - multiline, bold - THIS IS THE ONLY PART THAT DIFFERS -->
-        <!-- Title with YouTube styling using Tailwind where possible -->
+        <!-- Video title -->
         <h3 
           class="text-(--ui-yt-200) text-[1.1rem] overflow-hidden text-overflow-ellipsis line-clamp-2 leading-snug max-h-[4.4rem] font-medium whitespace-normal"
           style="display: -webkit-box; -webkit-box-orient: vertical;"
@@ -120,7 +119,7 @@ const handleSelect = () => {
       
       <!-- Video menu button - positioned to the right -->
       <div class="cursor-pointer self-start mt-[2px] blur-[1px]">
-        <UIcon name="i-lucide-more-vertical" class="h-6 w-6 text-(--ui-yt-200)/90"/>
+        <UIcon name="i-lucide-more-vertical" class="h-5 w-5 text-(--ui-yt-200)/90"/>
       </div>
     </div>
     
