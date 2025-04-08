@@ -87,7 +87,7 @@ const createTooltipButton = (icon: string, tooltip: string, onClick: (e: MouseEv
     h(UButton, {
       color,
       variant: 'ghost',
-      class: 'text-(--ui-yt-400) hover:text-(--ui-yt-200) hover:bg-transparent hover:cursor-pointer',
+      class: 'text-(--ui-yt-200) hover:text-(--ui-yt-400) hover:bg-transparent hover:cursor-pointer',
       icon,
       size: 'md',
       onClick: (e: MouseEvent) => {
@@ -252,6 +252,7 @@ const emptyState = () => {
         :data="state.data || []"
         :loading="asyncStatus === 'loading' || deleteStatus === 'loading'"
         loading-color="primary"
+        sticky
         :ui="{ 
           th: 'text-(--ui-yt-400) cursor-default',
           tr: 'cursor-pointer transition-colors rounded-lg',
@@ -295,8 +296,8 @@ const emptyState = () => {
     <!-- Share Modal - Note: Empty trigger since we open programmatically -->
     <UModal 
       v-model:open="shareModalOpen"
-      :title="`Voting link for '${shareModalTitle}'`" 
-      :ui="{ footer: 'justify-end' }"
+      :title="`Voting link for '${shareModalTitle}'`"
+      :ui="{ footer: 'justify-end', header: 'border-0', body: 'border-0' }"
     >
       <template #body class="-m-32">
         <p class="mb-4">Share this link to collect votes:</p>
@@ -347,7 +348,7 @@ const emptyState = () => {
     <UModal 
       v-model:open="deleteModalOpen"
       title="Confirm Deletion"
-      :ui="{ footer: 'justify-end' }"
+      :ui="{ footer: 'justify-end', header: 'border-0', body: 'border-0' }"
     >
       <template #body>
         <p>Delete "{{ deleteBattleName }}"?</p>

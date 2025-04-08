@@ -8,7 +8,8 @@ export default {
             400: 'var(--yt-400)',
             600: 'var(--yt-600)',
             800: 'var(--yt-800)',
-          }
+          },
+          'ui-yt-red': 'var(--ui-yt-red)',
         }
       }
     }

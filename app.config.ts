@@ -3,12 +3,13 @@ export default defineAppConfig({
   ui: {
     // Theme colors
     colors: {
-      primary: 'zinc',  // Custom color
-      secondary: 'stone',  // Custom color
-      info: 'blue',
+      primary: 'gray',
+      secondary: 'red',
+      info: 'red',
       success: 'green',
       warning: 'yellow',
-      error: 'red'
+      error: 'yellow',
+      neutral: 'white',
     },
-  }
+  },
 })

@@ -2,7 +2,7 @@
 <template>
   <div class="youtube-layout min-h-screen text-(--ui-yt-200)">
     <!-- YouTube-style header -->
-    <header class="fixed top-0 left-0 right-0 z-50">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-(--ui-yt-800)">
       <div class="container mx-auto px-4 h-14 flex items-center justify-between">
         <!-- Logo section -->
         <div class="flex items-center">

@@ -183,7 +183,7 @@ watch(() => winner.value, async (newWinner) => {
     
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
-      <UCard>
+      <UCard class="ring-0">
         <div class="p-6 space-y-6">
           <div class="flex justify-between items-center">
             <div>
@@ -235,7 +235,7 @@ watch(() => winner.value, async (newWinner) => {
     
     <!-- Results content -->
     <div v-else-if="battle" class="max-w-3xl mx-auto">
-      <UCard>
+      <UCard class="ring-0" :ui="{ header: 'border-0', body: 'border-0' }">
         <template #header>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div class="max-w-lg overflow-hidden">
@@ -260,7 +260,8 @@ watch(() => winner.value, async (newWinner) => {
         <div v-if="winner" id="confetti-container" class="mb-6 mt-2">
           <UCard
             variant="subtle"
-            class="text-center bg-gradient-to-b from-cold-400/10 to-cold-400/5 border-col-500/50"
+            class="text-center ring-0"
+            :ui="{ root: 'bg-(--ui-yt-600)/30 border-(--ui-yt-400)/50 border-1' }"
           >
             <!-- Trophy icon -->
             <div class="flex justify-center mb-3">
@@ -297,7 +298,7 @@ watch(() => winner.value, async (newWinner) => {
           :data="sortedOptions"
           :ui="{
             base: 'min-w-full text-left rtl:text-right',
-            thead: 'border-b border-white/5',
+            tbody: 'divide-y divide-(--ui-yt-600)',
             tr: 'hover:bg-white/2 transition-colors',
             th: 'px-4 py-3 text-sm font-medium text-(--ui-yt-400) uppercase',
             td: 'px-4 py-3 text-(--ui-yt-400)'

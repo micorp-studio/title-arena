@@ -4,7 +4,17 @@ import type { TitleOption } from '~/types';
 
 const props = defineProps<{
   option: TitleOption;
-  seed: number;
+  metadata: {
+    thumbnailUrl: string;
+    videoDuration: string;
+    viewCount: string;
+    timeAgo: string;
+    isVerified: boolean;
+    user: {
+      username: string;
+      avatarUrl: string;
+    };
+  } | null;
   isSelected: boolean;
   isRejected: boolean;
   isDisabled: boolean;
@@ -23,94 +33,6 @@ const handleSelect = () => {
     emit('select');
   }
 };
-
-// Use the seed directly without modification for thumbnails and metadata
-// so both cards in the pair share the same visual elements
-const pairSeed = computed(() => props.seed);
-
-const thumbnailUrl = computed(() => {
-  return `https://picsum.photos/seed/${pairSeed.value}/640/360.webp`;
-});
-
-// Generate a random video duration between 3 and 25 minutes
-const videoDuration = computed(() => {
-  const seed = parseInt(pairSeed.value.toString(), 10);
-  const minutes = 3 + (seed % 22); // Between 3 and 25 minutes
-  const seconds = (seed * 13) % 60; // Random seconds
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-});
-
-// Generate random view count between 10K and 1M
-const viewCount = computed(() => {
-  const seed = parseInt(pairSeed.value.toString(), 10);
-  const views = seed % 99999999;
-  return views > 1000000 
-    ? `${(views / 1000000).toFixed(1).replace('.0', '')} M vues` 
-    : views > 1000 
-      ? `${(views / 1000).toFixed(0)} k vues` 
-      : `${views} vues`;
-});
-
-// Random time period (hours, days, weeks, months)
-const timeAgo = computed(() => {
-  const seed = parseInt(pairSeed.value.toString(), 10);
-  const options = ['heures', 'jours', 'semaines', 'mois'];
-  const timeType = options[seed % options.length];
-  const timeAmount = 1 + (seed % 11);
-  return timeAmount === 1 
-    ? `il y a ${timeAmount} ${timeType.slice(0, -1)}` 
-    : `il y a ${timeAmount} ${timeType}`;
-});
-
-const isVerified = computed(() => parseInt(pairSeed.value.toString(), 10) % 3 === 0);
-
-// Single function to fetch both username and avatar based on seed
-const user = ref({
-  username: '',
-  avatarUrl: ''
-});
-
-// Fetch user data
-const fetchUserData = async () => {
-  // Use seed parameter to get consistent results for the same seed
-  const response = await fetch(`https://randomuser.me/api/?seed=${pairSeed.value}`);
-  const data = await response.json();
-  const user = data.results[0];
-  
-  // Make YouTube-like username
-  const firstName = user.name.first;
-  const lastName = user.name.last;
-  
-  // Choose a YouTube-like username format
-  const usernameFormats = [
-    `${firstName} ${lastName}`,
-    `${firstName}${lastName}`,
-    `${firstName}_${lastName}`,
-    `${firstName}.${lastName}`,
-    `${firstName}${lastName}Official`,
-    `${firstName}TV`,
-    `${firstName}Tube`,
-    `${lastName}Productions`,
-  ];
-  
-  const formatIndex = parseInt(pairSeed.value.toString(), 10) % usernameFormats.length;
-  return {
-    username: usernameFormats[formatIndex],
-    avatarUrl: user.picture.medium
-  };
-};
-
-// initialize user data
-fetchUserData().then(data => {
-  user.value = data;
-});
-
-// fetch user data each time the seed change
-watch(pairSeed, () => {
-  fetchUserData().then(data => {
-    user.value = data;
-  });
-});
 </script>
 
 <template>
@@ -122,18 +44,19 @@ watch(pairSeed, () => {
       isDisabled ? 'opacity-70' : 'hover:bg-(--ui-yt-800)/25'
     ]"
     @click="handleSelect"
+    v-if="metadata"
   >
     <!-- Thumbnail container with overlay -->
-    <div class="relative rounded-xl overflow-hidden mb-3">
+    <div class="relative rounded-xl overflow-hidden mb-3.5">
       <img 
-        :src="thumbnailUrl" 
+        :src="metadata.thumbnailUrl" 
         class="w-full aspect-video object-cover" 
         :alt="option.content"
       />
       
       <!-- Duration badge -->
       <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 text-xs font-medium text-white rounded-[4px]">
-        {{ videoDuration }}
+        {{ metadata.videoDuration }}
       </div>
       
       <!-- Selection feedback icon -->
@@ -155,42 +78,48 @@ watch(pairSeed, () => {
     <!-- Video info section -->
     <div class="flex gap-3">
       <!-- Channel avatar -->
-      <div class="flex-shrink-0">
+      <div class="flex-shrink-0 ring-0 border-0">
         <UAvatar
-          :src="user.avatarUrl"
-          size="sm"
-          :alt="`${user.username} avatar`"
+          :src="metadata.user.avatarUrl"
+          size="lg"
+          :alt="`${metadata.user.username} avatar`"
         />
       </div>
       
       <!-- Title and metadata -->
       <div class="flex-grow">
         <!-- Video title - multiline, bold - THIS IS THE ONLY PART THAT DIFFERS -->
-        <h3 class="text-sm font-medium leading-tight line-clamp-2 mb-1">
+        <!-- Title with YouTube styling using Tailwind where possible -->
+        <h3 
+          class="text-(--ui-yt-200) text-[1.1rem] overflow-hidden text-overflow-ellipsis line-clamp-2 leading-snug max-h-[4.4rem] font-medium whitespace-normal"
+          style="display: -webkit-box; -webkit-box-orient: vertical;"
+          :title="option.content"
+        >
           {{ option.content }}
         </h3>
+
         
         <!-- Channel name with verified badge if applicable -->
-        <div class="flex items-center text-xs text-gray-400">
-          <span>{{ user.username }}</span>
+        <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1">
+          <span>{{ metadata.user.username }}</span>
           <UIcon 
-            v-if="isVerified" 
-            name="i-lucide-circle-check-filled" 
-            class="ml-1 text-gray-400 h-3 w-3"
+            v-if="metadata.isVerified" 
+            name="i-ph-check-circle-fill" 
+            class="ml-1 text-(--ui-yt-400) h-3.5 w-3.5"
           />
         </div>
         
         <!-- View count and time ago -->
-        <div class="text-xs text-gray-400 flex items-center">
-          <span>{{ viewCount }}</span>
+        <div class="text-[0.9rem] text-(--ui-yt-400) flex items-center">
+          <span>{{ metadata.viewCount }}</span>
           <span class="mx-1">•</span>
-          <span>{{ timeAgo }}</span>
+          <span>{{ metadata.timeAgo }}</span>
         </div>
       </div>
       
       <!-- Video menu button - positioned to the right -->
       <div class="cursor-pointer self-start mt-[2px]">
-        <UIcon name="i-lucide-more-vertical" class="h-5 w-5 text-gray-400" />
+        <UIcon name="i-lucide-more-vertical" class="h-6 w-6 text-(--ui-yt-200)/90"/>
       </div>
     </div>
     
@@ -209,6 +138,19 @@ watch(pairSeed, () => {
         :class="isPositive ? 'bg-(--ui-yt-600) text-(--ui-yt-200) border-(--ui-yt-400)' : 'bg-(--ui-yt-600) text-(--ui-yt-200) border-(--ui-yt-400)'"
       >
         {{ stampMessage }}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading state when metadata isn't available yet -->
+  <div v-else class="youtube-card animate-pulse">
+    <div class="rounded-xl bg-gray-700/50 aspect-video mb-3"></div>
+    <div class="flex gap-3">
+      <div class="rounded-full bg-gray-700/50 h-8 w-8 flex-shrink-0"></div>
+      <div class="flex-grow">
+        <div class="h-4 bg-gray-700/50 rounded w-3/4 mb-2"></div>
+        <div class="h-3 bg-gray-700/50 rounded w-1/3 mb-1"></div>
+        <div class="h-3 bg-gray-700/50 rounded w-2/3"></div>
       </div>
     </div>
   </div>

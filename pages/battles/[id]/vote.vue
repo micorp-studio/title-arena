@@ -1,6 +1,7 @@
 <!-- pages/battles/[id]/vote.vue -->
 <script setup lang="ts">
 import { useVotingSession } from '~/composables/useVotingSession';
+import { useVideoMetadata } from '~/composables/useVideoMetadata';
 
 definePageMeta({
   layout: 'default'
@@ -37,24 +38,40 @@ const {
   submitVote
 } = useVotingSession(battleId.value);
 
+
+// Our metadata helper
+const { getVideoData, preloadMetadata } = useVideoMetadata();
+
+// Current pair metadata (reactive)
+const pairMetadata = ref(null);
+
 // Generate a single pair seed that changes with each new pair
-// This ensures both options share the same visual elements
 const pairSeed = computed(() => {
-  // Base it on completedPairs to change with each vote
   return Math.floor(Math.random() * 1000000) + completedPairs.value * 999;
 });
+
+// When seed changes, load the metadata
+watch(pairSeed, async (newSeed) => {
+  pairMetadata.value = await getVideoData(newSeed);
+  
+  // Preload the next seed if we know what it will be
+  if (completedPairs.value < totalPairs.value - 1) {
+    const nextSeed = Math.floor(Math.random() * 1000000) + (completedPairs.value + 1) * 999;
+    preloadMetadata(nextSeed);
+  }
+}, { immediate: true });
 </script>
 
 <template>
   <div class="container mx-auto px-4 py-8 md:py-12">
     <!-- Breadcrumb -->
-    <div class="max-w-3xl mx-auto mb-6">
+    <!-- <div class="max-w-3xl mx-auto mb-6">
       <UBreadcrumb :items="[
         { label: 'Home', icon: 'i-ph-house', to: '/' },
         { label: battle?.title || 'Battle', icon: 'i-ph-trophy', to: `/battles/${battleId}/results` },
         { label: 'Vote', icon: 'i-ph-check-square' }
       ]" />
-    </div>
+    </div> -->
     
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
@@ -94,23 +111,8 @@ const pairSeed = computed(() => {
       <UCard class="ring-0 bg-(--ui-yt-800) text-(--ui-yt-200)">
         <!-- Active voting session -->
         <div v-if="!completed && currentPair.optionA && currentPair.optionB" class="py-4">
-          <!-- Progress bar -->
-          <div class="mb-8">
-            <UProgress 
-              :model-value="progressPercentage" 
-              color="primary"
-              size="md"
-              class="mb-2"
-              :ui="{
-                base: 'bg-(--ui-yt-600)'
-              }"
-            />
-            <p class="text-xs text-right text-(--ui-yt-400)">
-              {{ completedPairs }} of {{ totalPairs }} duels
-            </p>
-          </div>
           
-          <p class="text-center mb-6 font-medium">Which one do you prefer?</p>
+          <!-- <p class="text-center mb-6 font-medium">Which one do you prefer?</p> -->
           
           <!-- Card container with transition group -->
           <div 
@@ -119,10 +121,10 @@ const pairSeed = computed(() => {
             role="region"
             aria-label="Voting options"
           >
-            <!-- Option A - Both options use the same pairSeed -->
+            <!-- Option A -->
             <VoteCard
               :option="currentPair.optionA"
-              :seed="pairSeed"
+              :metadata="pairMetadata"
               :is-selected="selectedCard === 'A'"
               :is-rejected="rejectedCard === 'A'"
               :is-disabled="isVoting"
@@ -133,10 +135,10 @@ const pairSeed = computed(() => {
               @select="submitVote(currentPair.optionA.id, currentPair.optionB.id, 'A')"
             />
             
-            <!-- Option B - Same pairSeed to ensure visual consistency -->
+            <!-- Option B - Same metadata -->
             <VoteCard
               :option="currentPair.optionB"
-              :seed="pairSeed"
+              :metadata="pairMetadata"
               :is-selected="selectedCard === 'B'"
               :is-rejected="rejectedCard === 'B'"
               :is-disabled="isVoting"
@@ -162,6 +164,23 @@ const pairSeed = computed(() => {
           >
             Edit Battle
           </UButton>
+          
+        </div>
+
+        <!-- Progress bar -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 max-w-xl w-full">
+          <UProgress 
+            :model-value="progressPercentage" 
+            color="primary"
+            size="md"
+            class="mb-2"
+            :ui="{
+              base: 'bg-(--ui-yt-600)'
+            }"
+          />
+          <p class="text-xs text-right text-(--ui-yt-400)">
+            {{ completedPairs }} of {{ totalPairs }} duels
+          </p>
         </div>
       </UCard>
     </div>

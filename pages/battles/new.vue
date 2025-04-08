@@ -162,7 +162,7 @@ const handleSubmit = async () => {
     </div>
     
     <!-- Form -->
-    <UCard class="max-w-xl mx-auto">
+    <UCard class="max-w-xl mx-auto ring-(--ui-yt-400)/80">
       <form @submit.prevent="handleSubmit" class="space-y-10">
         <!-- Battle Title -->
         <div class="flex flex-col gap-1">
