@@ -37,7 +37,7 @@ const handleSelect = () => {
 
 <template>
   <div 
-    class="youtube-card transition-all cursor-pointer relative animate-card-in"
+    class="youtube-card transition-all cursor-pointer relative animate-card-in max-w-xs mx-auto"
     :class="[
       isSelected ? 'z-10 scale-105' : 
       isRejected ? '!opacity-50' : 

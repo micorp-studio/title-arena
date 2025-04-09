@@ -6,11 +6,6 @@
       <div class="container mx-auto px-4 h-14 flex items-center justify-between">
         <!-- Logo section -->
         <div class="flex items-center">
-          <!-- Mobile menu icon (placeholder) -->
-          <button class="md:hidden p-2 mr-2 text-(--ui-yt-200)">
-            <UIcon name="i-ph-list" class="text-xl" />
-          </button>
-          
           <!-- YouTube-inspired logo -->
           <NuxtLink to="/" class="flex items-center">
             <span class="text-2xl font-bold tracking-tighter flex items-center">
@@ -21,7 +16,7 @@
         </div>
         
         <!-- Search bar (simplified) -->
-        <div class="hidden md:flex flex-1 max-w-xl mx-6">
+        <div v-if="$route.path.endsWith('/vote')" class="hidden md:flex flex-1 max-w-xl mx-6 blur-[1px]">
           <div class="relative w-full">
             <UInput
               placeholder="Rechercher"
