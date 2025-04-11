@@ -23,11 +23,37 @@ const { state, asyncStatus } = useBattleDetails();
 // Get properly typed battle data
 const battle = computed(() => state.value?.data as any);
 
+const optionAppearances = computed(() => {
+  if (!battle.value?.titleOptions) return {};
+  
+  const appearances: Record<string, number> = {};
+  
+  const titles = battle.value.titleOptions as TitleOption[]
+  titles.forEach(option => {
+    appearances[option.id] = 0;
+  });
+  
+  if (battle.value?.voteCount && titles.length >= 2) {
+    const n = titles.length;
+    
+    const totalPairs = n * (n - 1) / 2; // Total number of unique pairs
+    const votesPerPair = battle.value.voteCount / totalPairs; // Average votes per pair
+    
+    // Each option appears in (n-1) different pairs
+    titles.forEach(option => {
+      appearances[option.id] = (n - 1) * votesPerPair;
+    });
+  }
+  
+  return appearances;
+});
+
 // Get sorted options by score (descending)
 const sortedOptions = computed(() => {
   if (!battle.value?.titleOptions) return [];
   
   return [...battle.value.titleOptions]
+    .sort((a, b) => a.content.length - b.content.length) // tie-break: prefer shortest title
     .sort((a, b) => b.score - a.score)
     .map((option, index) => ({
       ...option,
@@ -116,6 +142,29 @@ const columns: TableColumn<RankedTitleOption>[] = [
     }
   },
   {
+    accessorKey: 'scoreElo',
+    header: 'Elo',
+    cell: ({ row }) => {
+      const rank = row.original.rank;
+      const scoreElo = row.original.scoreElo;
+      
+      // Determine opacity based on rank
+      const opacity = rank === 1 ? '100' : 
+                     rank === 2 ? '90' : 
+                     rank === 3 ? '80' : '70';
+      
+      return h('div', { 
+        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
+      }, scoreElo);
+    },
+    meta: {
+      class: {
+        th: 'text-right w-24',
+        td: 'text-right'
+      }
+    }
+  },
+  {
     accessorKey: 'score',
     header: 'Score',
     cell: ({ row }) => {
@@ -130,6 +179,33 @@ const columns: TableColumn<RankedTitleOption>[] = [
       return h('div', { 
         class: `text-right text-(--ui-yt-200) opacity-${opacity}`
       }, score);
+    },
+    meta: {
+      class: {
+        th: 'text-right w-24',
+        td: 'text-right'
+      }
+    }
+  },
+  {
+    accessorKey: 'victoryRate',
+    header: 'Win Rate',
+    cell: ({ row }) => {
+      const rank = row.original.rank;
+      const score = row.original.score;
+      const appearances = optionAppearances.value[row.original.id] || 0;
+      let victoryRate = 0;
+      if (appearances > 0) {
+        victoryRate = Math.round((score / appearances) * 100);
+      }
+      
+      const opacity = rank === 1 ? '100' : 
+                     rank === 2 ? '90' : 
+                     rank === 3 ? '80' : '70';
+      
+      return h('div', { 
+        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
+      }, `${victoryRate} %`);
     },
     meta: {
       class: {
@@ -267,7 +343,7 @@ watch(() => winner.value, async (newWinner) => {
               </span>
             </div>
             
-            <!-- Winner title with tooltip, handling long content -->
+            <!-- Winner spotlight -->
             <UTooltip text="Click to copy">
               <button 
                 class="text-xl font-medium text-warm-500 mb-2 cursor-pointer 

@@ -23,5 +23,6 @@ export const battleSchema = z.object({
   
   export const voteSchema = z.object({
     winnerId: z.string().uuid('Invalid winner ID'),
-    loserId: z.string().uuid('Invalid loser ID')
+    loserId: z.string().uuid('Invalid loser ID'),
+    winnerCard: z.enum(['A','B','AB'])
   }) satisfies z.ZodType<VoteRequest>;

@@ -77,6 +77,7 @@ const handleSelect = () => {
     
     <!-- Video info section -->
     <div class="flex gap-3">
+      
       <!-- Channel avatar -->
       <div class="flex-shrink-0 relative rounded-full overflow-hidden" style="width: 40px; height: 40px;">
         <img 

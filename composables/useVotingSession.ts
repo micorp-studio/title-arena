@@ -47,7 +47,7 @@ export function useVotingSession(battleId: string) {
   const exitingPair = ref(false);  // Flag for card exit animation
 
   // Visual feedback state
-  const selectedCard = ref<'A' | 'B' | null>(null);
+  const selectedCard = ref<'A' | 'B' | 'AB' | null>(null);
   const rejectedCard = ref<'A' | 'B' | null>(null);
   const stampCard = ref<'winner' | 'loser' | null>(null);
   const stampPosition = ref({ top: '10%', left: '10%', rotate: '0deg' });
@@ -120,14 +120,16 @@ export function useVotingSession(battleId: string) {
   };
 
   // Submit a vote with fixed animation handling
-  const submitVote = async (winnerId: string, loserId: string, winnerCard: 'A' | 'B') => {
+  const submitVote = async (winnerId: string, loserId: string, winnerCard: 'A' | 'B' | 'AB') => {
     if (isVoting.value) return;
     
     isVoting.value = true;
     
     // Set up visual feedback
     selectedCard.value = winnerCard;
-    rejectedCard.value = winnerCard === 'A' ? 'B' : 'A';
+    if (winnerCard !== 'AB') { 
+      rejectedCard.value = winnerCard === 'A' ? 'B' : 'A';
+    }
     
     // Choose which card gets the stamp
     stampCard.value = chooseStampCard();
@@ -145,7 +147,8 @@ export function useVotingSession(battleId: string) {
       await submitVoteMutate({
         battleId,
         winnerId,
-        loserId
+        loserId,
+        winnerCard
       });
       
       // Update progress counter manually

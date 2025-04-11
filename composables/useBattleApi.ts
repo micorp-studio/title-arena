@@ -193,11 +193,11 @@ export function useBattleMutations() {
    */
   const submitVote = useMutation({
     key: ['submitVote'],
-    mutation: ({ battleId, winnerId, loserId }: VoteRequest & { battleId: string }) => 
+    mutation: ({ battleId, winnerId, loserId, winnerCard }: VoteRequest & { battleId: string }) => 
       fetch(`${baseUrl}/api/battles/${battleId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winnerId, loserId })
+        body: JSON.stringify({ winnerId, loserId, winnerCard })
       })
       .then(r => {
         if (!r.ok) {

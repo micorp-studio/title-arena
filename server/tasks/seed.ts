@@ -40,7 +40,8 @@ export default defineTask({
         id: generateId(),
         battleId: battleId1,
         content: title,
-        score: 1000 + Math.floor(Math.random() * 200 - 100) // Randomize initial scores
+        scoreElo: 1000 + Math.floor(Math.random() * 200 - 100),
+        score: 15 + Math.floor(Math.random() * 10)
       });
     }
     
@@ -69,7 +70,8 @@ export default defineTask({
         id: generateId(),
         battleId: battleId2,
         content: title,
-        score: 1000 + Math.floor(Math.random() * 400 - 200) // More variance
+        scoreElo: 1000 + Math.floor(Math.random() * 400 - 200),
+        score: 10 + Math.floor(Math.random() * 20)
       });
     }
     

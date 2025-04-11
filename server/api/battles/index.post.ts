@@ -38,7 +38,8 @@ export default defineEventHandler(async (event): Promise<Battle> => {
           id: generateId(),
           battleId,
           content,
-          score: 1000
+          scoreElo: 1000,
+          score: 0
         });
     }
     

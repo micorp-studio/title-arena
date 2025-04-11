@@ -15,7 +15,8 @@ export const titleOptions = sqliteTable('title_options', {
   id: text('id').primaryKey(),
   battleId: text('battle_id').notNull().references(() => battles.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
-  score: integer('score').notNull().default(1000)
+  scoreElo: integer('scoreElo').notNull().default(1000),
+  score: integer('score').notNull().default(0)
 });
 
 // Votes table to track individual votes for analytics

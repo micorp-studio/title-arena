@@ -1,7 +1,4 @@
 // types/index.ts
-/**
- * Core data types for Title Arena application
- */
 
 // A Battle represents a title comparison contest
 export interface Battle {
@@ -9,7 +6,7 @@ export interface Battle {
     title: string;
     createdAt: number;
     voteCount: number;
-    titleOptions: TitleOption[]; // Renamed from "options" to match database schema
+    titleOptions: TitleOption[];
   }
   
   // A TitleOption represents a single title candidate
@@ -17,6 +14,7 @@ export interface Battle {
     id: string;
     battleId: string;
     content: string;
+    scoreElo: number;
     score: number;
   }
   
@@ -37,6 +35,7 @@ export interface Battle {
   export interface VoteRequest {
     winnerId: string;
     loserId: string;
+    winnerCard: 'A' | 'B' | 'AB';
   }
   
   // API response types
@@ -44,12 +43,16 @@ export interface Battle {
     winner: {
       id: string;
       content: string;
+      oldScoreElo: number;
+      newScoreElo: number;
       oldScore: number;
       newScore: number;
     };
     loser: {
       id: string;
       content: string;
+      oldScoreElo: number;
+      newScoreElo: number;
       oldScore: number;
       newScore: number;
     };

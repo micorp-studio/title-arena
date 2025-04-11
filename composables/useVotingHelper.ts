@@ -3,30 +3,15 @@ import { ref, computed } from 'vue';
 import type { TitleOption } from '~/types';
 
 export function useVotingHelper() {
-  // Positive and negative feedback messages
   const positiveMessages = [
-    "banger",
-    "10/10", 
-    "tip top",
-    "goated",
-    "buzzword",
-    "imbattable",
+    "banger", "10/10", "tip top", "goated", "buzzword", "imbattable",
   ];
 
   const negativeMessages = [
-    "nope",
-    "meh",
-    "pas ouf",
-    "ça dégage",
-    "boring",
-    "on oublie",
-    "nul",
-    "ciao",
-    "éclatax",
-
+    "nope", "meh", "pas ouf", "ça dégage", "boring", "on oublie", 
+    "nul", "ciao", "éclatax",
   ];
 
-  // Generate a random position for stamps
   const generateRandomPosition = () => {
     const top = `${10 + Math.floor(Math.random() * 60)}%`;
     const left = `${10 + Math.floor(Math.random() * 60)}%`;
@@ -34,34 +19,15 @@ export function useVotingHelper() {
     return { top, left, rotate };
   };
 
-  // Choose which card to display the stamp on
   const chooseStampCard = (): 'winner' | 'loser' => {
     return Math.random() < 0.5 ? 'winner' : 'loser';
   };
 
-  // Get a random message
   const getRandomMessage = (positive: boolean): string => {
     const messages = positive ? positiveMessages : negativeMessages;
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  // Generate all possible pairs for voting
-  const generatePairs = (options: TitleOption[]): Array<[TitleOption, TitleOption]> => {
-    if (!options || options.length < 2) return [];
-    
-    const pairs: Array<[TitleOption, TitleOption]> = [];
-    
-    // Create all possible pairs
-    for (let i = 0; i < options.length; i++) {
-      for (let j = i + 1; j < options.length; j++) {
-        pairs.push([options[i], options[j]]);
-      }
-    }
-    
-    return shuffleArray(pairs);
-  };
-
-  // Shuffle an array randomly
   const shuffleArray = <T>(array: T[]): T[] => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -69,6 +35,59 @@ export function useVotingHelper() {
       [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
     return newArray;
+  };
+
+  const generatePairs = (options: TitleOption[]): Array<[TitleOption, TitleOption]> => {
+    if (!options || options.length < 2) return [];
+    
+    const allPairs: Array<[TitleOption, TitleOption]> = [];
+    for (let i = 0; i < options.length; i++) {
+      for (let j = i + 1; j < options.length; j++) {
+        allPairs.push(Math.random() < 0.5 ? [options[i], options[j]] : [options[j], options[i]]);
+      }
+    }
+    
+    const shuffledPairs = shuffleArray([...allPairs]);
+    if (shuffledPairs.length <= 2) return shuffledPairs;
+
+    const result: Array<[TitleOption, TitleOption]> = [];
+    result.push(shuffledPairs[0]);
+    
+    let lastTitles = new Set([shuffledPairs[0][0].id, shuffledPairs[0][1].id]);
+    const candidates = shuffledPairs.slice(1);
+    
+    while (candidates.length > 0 && result.length < allPairs.length) {
+      let foundIndex = -1;
+      
+      for (let i = 0; i < candidates.length; i++) {
+        const pair = candidates[i];
+        const pairTitles = new Set([pair[0].id, pair[1].id]);
+        
+        if (![...pairTitles].some(id => lastTitles.has(id))) {
+          foundIndex = i;
+          break;
+        }
+      }
+      
+      if (foundIndex === -1) {
+        foundIndex = 0;
+        const repeatedPair = candidates[foundIndex];
+        const repeatedIds = [...lastTitles].filter(id => 
+          repeatedPair[0].id === id || repeatedPair[1].id === id
+        );
+        
+        if (repeatedIds.length > 0 && repeatedPair[0].id === repeatedIds[0]) {
+          candidates[foundIndex] = [repeatedPair[1], repeatedPair[0]];
+        }
+      }
+      
+      const nextPair = candidates[foundIndex];
+      result.push(nextPair);
+      lastTitles = new Set([nextPair[0].id, nextPair[1].id]);
+      candidates.splice(foundIndex, 1);
+    }
+    
+    return result;
   };
 
   return {

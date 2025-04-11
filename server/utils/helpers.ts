@@ -25,17 +25,28 @@ export function logger(context: string) {
 }
 
 // ELO rating
-export function calculateNewRatings(
+export function calculateEloRatings(
   winnerScore: number, 
   loserScore: number, 
   kFactor = 8
-): { winnerNew: number, loserNew: number } {
+): { winnerEloNew: number, loserEloNew: number } {
   
   const expectedWinner = 1 / (1 + Math.pow(10, (loserScore - winnerScore) / 400));
   const expectedLoser = 1 / (1 + Math.pow(10, (winnerScore - loserScore) / 400));
   
-  const winnerNew = Math.round(winnerScore + kFactor * (1 - expectedWinner));
-  const loserNew = Math.round(loserScore + kFactor * (0 - expectedLoser));
+  const winnerEloNew = Math.round(winnerScore + kFactor * (1 - expectedWinner));
+  const loserEloNew = Math.round(loserScore + kFactor * (0 - expectedLoser));
+  
+  return { winnerEloNew, loserEloNew };
+}
+
+export function calculateRatings(
+  winnerScore: number, 
+  loserScore: number, 
+): { winnerNew: number, loserNew: number } {
+  
+  const winnerNew = winnerScore + 1;
+  const loserNew = loserScore;
   
   return { winnerNew, loserNew };
 }

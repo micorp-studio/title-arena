@@ -117,18 +117,18 @@ async function onSubmit() {
                   class="w-full"
                   @keydown.enter.prevent="focusNextOption(index)"
                 />
-                <UButton
+                <!-- <UButton
                   @click="removeOption(index)"
                   color="neutral"
                   variant="ghost"
                   icon="i-ph-trash"
                   class="flex-shrink-0"
                   :disabled="battleState.options.length <= 2"
-                />
+                /> -->
               </div>
             </UFormField> 
           </div>
-          <UButton
+          <!-- <UButton
             color="primary"
             variant="subtle"
             icon="i-ph-plus"
@@ -137,7 +137,7 @@ async function onSubmit() {
           >
             Add Option
             <UKbd size="md" variant="subtle" class="ml-1 p-1 opacity-70 rounded-md bg-warm-100">⏎</UKbd>
-          </UButton>
+          </UButton> -->
 
           <div class="flex justify-end gap-4 pt-2">
             <UButton

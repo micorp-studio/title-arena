@@ -112,7 +112,7 @@ watch(pairSeed, async (newSeed) => {
                 :option="currentPair.optionA"
                 :metadata="pairMetadata"
                 :is-selected="selectedCard === 'A'"
-                :is-rejected="rejectedCard === 'A'"
+                :is-rejected="rejectedCard === 'A' || selectedCard === 'AB'"
                 :is-disabled="isVoting"
                 :stamp-position="stampPosition"
                 :stamp-message="selectedCard === 'A' ? winnerMessage : loserMessage"
@@ -126,7 +126,7 @@ watch(pairSeed, async (newSeed) => {
                 :option="currentPair.optionB"
                 :metadata="pairMetadata"
                 :is-selected="selectedCard === 'B'"
-                :is-rejected="rejectedCard === 'B'"
+                :is-rejected="rejectedCard === 'B'  || selectedCard === 'AB'"
                 :is-disabled="isVoting"
                 :stamp-position="stampPosition" 
                 :stamp-message="selectedCard === 'B' ? winnerMessage : loserMessage"
@@ -134,6 +134,15 @@ watch(pairSeed, async (newSeed) => {
                 :is-positive="selectedCard === 'B'"
                 @select="submitVote(currentPair.optionB.id, currentPair.optionA.id, 'B')"
               />
+            </div>
+            <div class="text-center mt-12 opacity-60">
+              <UButton
+                variant="outline"
+                @click="submitVote(currentPair.optionA.id, currentPair.optionB.id, 'AB')"
+                :ui="{ base: 'px-8' }"
+              >
+               kif-kif
+              </UButton>
             </div>
           </div>
           

@@ -28,6 +28,7 @@ export function mapBattleRecord(battle: typeof schema.battles.$inferSelect & {
       id: option.id,
       battleId: option.battleId,
       content: option.content,
+      scoreElo: option.scoreElo,
       score: option.score
     }))
   };
