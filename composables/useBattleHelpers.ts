@@ -2,9 +2,9 @@
 import type { TitleOption } from '~/types';
 import { formatDistance, format } from 'date-fns';
 
-const toast = useToast();
-
 export function useBattleHelpers() {
+  const toast = useToast();
+  
   // Format a timestamp into a readable date
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp * 1000);
@@ -25,6 +25,7 @@ export function useBattleHelpers() {
   };
 
   const copyToClipboard = async (text: string, withToast: boolean = false): Promise<boolean> => {
+    if (import.meta.client) {
       await navigator.clipboard.writeText(text);
       
       if (withToast) {
@@ -35,9 +36,9 @@ export function useBattleHelpers() {
         });
       }
       return true;
-    };
-
-
+    }
+    return false;
+  };
 
   // Improved vote count label with proper pluralization
   const getVoteCountLabel = (count: number): string => {
@@ -45,7 +46,6 @@ export function useBattleHelpers() {
     if (count === 1) return '1 vote';
     return `${count} votes`;
   };
-
 
   return {
     formatDate,

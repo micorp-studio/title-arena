@@ -24,17 +24,16 @@ export function logger(context: string) {
   };
 }
 
-// ELO rating calculator with configurable K-factor
+// ELO rating
 export function calculateNewRatings(
   winnerScore: number, 
   loserScore: number, 
   kFactor = 32
 ): { winnerNew: number, loserNew: number } {
-  // Calculate expected scores (probability of winning)
+  
   const expectedWinner = 1 / (1 + Math.pow(10, (loserScore - winnerScore) / 400));
   const expectedLoser = 1 / (1 + Math.pow(10, (winnerScore - loserScore) / 400));
   
-  // Calculate new ratings
   const winnerNew = Math.round(winnerScore + kFactor * (1 - expectedWinner));
   const loserNew = Math.round(loserScore + kFactor * (0 - expectedLoser));
   
