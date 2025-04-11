@@ -32,7 +32,7 @@ const copyLink = () => {
 
 // Go to voting page
 const beginVoting = () => {
-  navigateTo(`/battles/${battleId}/vote`);
+  navigateTo(`/battles/${battleId.value}/vote`);
 };
 
 // Go to home page

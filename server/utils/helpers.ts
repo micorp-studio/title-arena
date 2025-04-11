@@ -28,7 +28,7 @@ export function logger(context: string) {
 export function calculateNewRatings(
   winnerScore: number, 
   loserScore: number, 
-  kFactor = 32
+  kFactor = 8
 ): { winnerNew: number, loserNew: number } {
   
   const expectedWinner = 1 / (1 + Math.pow(10, (loserScore - winnerScore) / 400));
