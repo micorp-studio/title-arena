@@ -31,13 +31,8 @@ export const useAllBattles = defineQuery({
   key: ['battles'],
   query: () => {
     const baseUrl = getApiBaseUrl();
-    return fetch(`${baseUrl}/api/battles`)
-      .then(r => {
-        if (!r.ok) {
-          throw new Error(`API error: ${r.status}`);
-        }
-        return r.json() as Promise<Battle[]>;
-      });
+    return $fetch("/api/battles")
+
   },
   staleTime: 0, // Always consider data stale to ensure freshness
   refetchOnWindowFocus: true

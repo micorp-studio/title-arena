@@ -3,12 +3,7 @@
 import { useBattleDetails } from '~/composables/useBattleApi';
 import type { Battle } from '~/types';
 
-definePageMeta({
-  layout: 'default'
-});
-
 const route = useRoute();
-const router = useRouter();
 const battleId = computed(() => route.params.id as string);
 
 // Get battle details
@@ -17,24 +12,12 @@ const { state, asyncStatus } = useBattleDetails();
 // Get properly typed battle data
 const battle = computed(() => state.value?.data as Battle | undefined);
 
-// Build the shareable URL
-const origin = computed(() => {
-  if (process.client) {
-    return window.location.origin;
-  }
-  return '';
-});
+const shareLink = `${window.location.origin}/battles/${battle.value?.id}/vote`
 
-const shareUrl = computed(() => {
-  return `${origin.value}/battles/${battleId.value}/vote`;
-});
-
-// Copy state
 const copied = ref(false);
 
-// Copy link function
 const copyLink = () => {
-  navigator.clipboard.writeText(shareUrl.value);
+  navigator.clipboard.writeText(shareLink);
   copied.value = true;
   
   setTimeout(() => {
@@ -44,12 +27,12 @@ const copyLink = () => {
 
 // Go to voting page
 const beginVoting = () => {
-  router.push(`/battles/${battleId.value}/vote`);
+  navigateTo(`/battles/${battleId.value}/vote`);
 };
 
 // Go to home page
 const goHome = () => {
-  router.push('/');
+  navigateTo('/');
 };
 </script>
 
@@ -107,7 +90,7 @@ const goHome = () => {
           <div class="mb-8 px-4">
             <p class="text-sm opacity-80 mb-2">Share this link to collect votes:</p>
             <UInput
-              :model-value="shareUrl"
+              :model-value="shareLink"
               readonly
               class="font-mono text-sm w-full px-2 py-1"
               :ui="{ trailing: 'pr-1' }"

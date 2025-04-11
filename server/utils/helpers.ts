@@ -1,20 +1,7 @@
 // server/utils/helpers.ts
 import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import type { CreateBattleRequest, UpdateBattleRequest, VoteRequest } from '~/types';
 import type { H3Event } from 'h3';
 
-
-// Server configuration
-export const serverConfig = {
-  elo: {
-    initialScore: 1000,
-    kFactor: 32
-  },
-  options: {
-    minPerBattle: 2
-  }
-};
 
 // Generate unique IDs
 export function generateId(): string {
@@ -37,32 +24,11 @@ export function logger(context: string) {
   };
 }
 
-// Validation schemas
-export const battleSchema = z.object({
-  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(100, 'Title must be at most 100 characters'),
-  options: z.array(
-    z.string().trim().min(1, 'Option cannot be empty').max(100, 'Option must be at most 100 characters')
-  ).min(serverConfig.options.minPerBattle, `At least ${serverConfig.options.minPerBattle} options are required`)
-}) satisfies z.ZodType<CreateBattleRequest>;
-
-export const updateBattleSchema = z.object({
-  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(100, 'Title must be at most 100 characters'),
-  options: z.array(z.object({
-    id: z.string().optional(),
-    content: z.string().trim().min(1, 'Option cannot be empty').max(100, 'Option must be at most 100 characters')
-  })).min(serverConfig.options.minPerBattle, `At least ${serverConfig.options.minPerBattle} options are required`)
-}) satisfies z.ZodType<UpdateBattleRequest>;
-
-export const voteSchema = z.object({
-  winnerId: z.string().uuid('Invalid winner ID'),
-  loserId: z.string().uuid('Invalid loser ID')
-}) satisfies z.ZodType<VoteRequest>;
-
 // ELO rating calculator with configurable K-factor
 export function calculateNewRatings(
   winnerScore: number, 
   loserScore: number, 
-  kFactor = serverConfig.elo.kFactor
+  kFactor = 32
 ): { winnerNew: number, loserNew: number } {
   // Calculate expected scores (probability of winning)
   const expectedWinner = 1 / (1 + Math.pow(10, (loserScore - winnerScore) / 400));

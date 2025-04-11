@@ -1,6 +1,7 @@
 // server/api/battles/[id]/vote.post.ts
 import { defineEventHandler } from 'h3';
-import { voteSchema, calculateNewRatings, generateId, getCurrentTimestamp, getBattleIdParam, logger } from '~/server/utils/helpers';
+import { calculateNewRatings, generateId, getCurrentTimestamp, getBattleIdParam, logger } from '~/server/utils/helpers';
+import { voteSchema } from '~/types/zod_schemas';
 import { useDrizzle, eq, tables, battleOperations } from '~/server/utils/drizzle';
 import { ZodError } from 'zod';
 import type { VoteRequest, VoteResponse } from '~/types';

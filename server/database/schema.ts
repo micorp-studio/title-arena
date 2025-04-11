@@ -1,7 +1,6 @@
 // server/database/schema.ts
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
-import { serverConfig } from '../utils/helpers';
 
 // Battles table
 export const battles = sqliteTable('battles', {
@@ -16,7 +15,7 @@ export const titleOptions = sqliteTable('title_options', {
   id: text('id').primaryKey(),
   battleId: text('battle_id').notNull().references(() => battles.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
-  score: integer('score').notNull().default(serverConfig.elo.initialScore)
+  score: integer('score').notNull().default(1000)
 });
 
 // Votes table to track individual votes for analytics

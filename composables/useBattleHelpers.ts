@@ -22,20 +22,6 @@ export function useBattleHelpers() {
     return format(date, isToday ? 'p' : 'MMM d, yyyy');
   };
 
-  // Format title options into a displayable string
-  const formatTitles = (options: TitleOption[]): string => {
-    if (!options || options.length === 0) return 'No options';
-    
-    // Sort by score descending - create a copy to avoid mutating the original
-    const sortedOptions = [...options].sort((a, b) => b.score - a.score);
-    
-    if (sortedOptions.length <= 2) {
-      return sortedOptions.map(opt => opt.content).join(' vs. ');
-    }
-    
-    return `${sortedOptions[0].content} and ${sortedOptions.length - 1} more`;
-  };
-
   // Enhanced clipboard functionality with better error handling
   const copyToClipboard = async (text: string, toast?: any): Promise<boolean> => {
     try {
@@ -97,12 +83,6 @@ export function useBattleHelpers() {
     }
   };
 
-  // Copy a battle link to the clipboard - uses the enhanced copyToClipboard function
-  const copyBattleLink = (battleId: string, section: 'vote' | 'results' | 'edit' = 'vote', toast?: any): Promise<boolean> => {
-    const url = `${window.location.origin}/battles/${battleId}/${section}`;
-    return copyToClipboard(url, toast);
-  };
-
   // Copy title text to clipboard - uses the enhanced copyToClipboard function
   const copyTitleText = (title: string, toast?: any): Promise<boolean> => {
     return copyToClipboard(title, toast);
@@ -134,9 +114,7 @@ export function useBattleHelpers() {
 
   return {
     formatDate,
-    formatTitles,
     copyToClipboard,
-    copyBattleLink,
     copyTitleText,
     getRandomPair,
     getVoteCountLabel,

@@ -1,5 +1,5 @@
 // server/tasks/seed.ts
-import { generateId, getCurrentTimestamp, logger, serverConfig } from '../utils/helpers';
+import { generateId, getCurrentTimestamp, logger } from '../utils/helpers';
 import { useDrizzle, tables } from '../utils/drizzle';
 
 const log = logger('db-seed');
@@ -40,7 +40,7 @@ export default defineTask({
         id: generateId(),
         battleId: battleId1,
         content: title,
-        score: serverConfig.elo.initialScore + Math.floor(Math.random() * 200 - 100) // Randomize initial scores
+        score: 1000 + Math.floor(Math.random() * 200 - 100) // Randomize initial scores
       });
     }
     
@@ -69,7 +69,7 @@ export default defineTask({
         id: generateId(),
         battleId: battleId2,
         content: title,
-        score: serverConfig.elo.initialScore + Math.floor(Math.random() * 400 - 200) // More variance
+        score: 1000 + Math.floor(Math.random() * 400 - 200) // More variance
       });
     }
     

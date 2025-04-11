@@ -1,6 +1,7 @@
 // server/api/battles/[id].put.ts
 import { defineEventHandler } from 'h3';
-import { updateBattleSchema, generateId, getBattleIdParam, logger, serverConfig } from '~/server/utils/helpers';
+import { generateId, getBattleIdParam, logger} from '~/server/utils/helpers';
+import { updateBattleSchema } from '~/types/zod_schemas';
 import { useDrizzle, eq, tables, mapBattleRecord, battleOperations } from '~/server/utils/drizzle';
 import { ZodError } from 'zod';
 import type { Battle, UpdateBattleRequest } from '~/types';
@@ -91,7 +92,7 @@ export default defineEventHandler(async (event): Promise<Battle> => {
           id: generateId(),
           battleId: id,
           content: option.content,
-          score: serverConfig.elo.initialScore
+          score: 1000
         });
     }
     

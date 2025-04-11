@@ -5,18 +5,21 @@ import type { TableColumn } from '@nuxt/ui';
 import { useRouter } from 'vue-router';
 import { useAllBattles, useBattleMutations } from '~/composables/useBattleApi';
 import { useBattleHelpers } from '~/composables/useBattleHelpers';
+import ShareModal from '~/components/ShareModal.vue'
+import DeleteModal from '~/components/DeleteModal.vue';
 import type { Battle, TitleOption } from '~/types';
-
-definePageMeta({
-  layout: 'default'
-});
 
 const toast = useToast();
 const router = useRouter();
-const { formatDate, formatTitles, copyBattleLink, getVoteCountLabel } = useBattleHelpers();
+const UBadge = resolveComponent('UBadge')
+const UTooltip = resolveComponent('UTooltip');
+const UButton = resolveComponent('UButton');
+const UIcon = resolveComponent('UIcon')
+
+const { formatDate, getVoteCountLabel } = useBattleHelpers();
 
 // Get battles data
-const { state, asyncStatus, refresh } = useAllBattles();
+const { state, asyncStatus} = useAllBattles();
 
 // Get mutations
 const { 
@@ -26,20 +29,39 @@ const {
   }
 } = useBattleMutations();
 
-// Modal refs using v-model:open pattern
-const shareModalOpen = ref(false);
-const deleteModalOpen = ref(false);
-const currentBattleId = ref('');
-const shareModalTitle = ref('');
-const deleteBattleName = ref('');
-const deleteBattleId = ref('');
+const overlay = useOverlay();
 
-// Copy state
-const copied = ref(false);
+async function openShareModal(battle: Battle) {
+  const modal = overlay.create(ShareModal, {
+    props: {
+        battle: battle
+    }
+  })
+  const beginVotes = await modal.open()
+  if (beginVotes) {
+    navigateTo(`/battles/${battle.id}/vote`);
+  }
+}
 
-// Helper function to create a badge with render function (fixes non-function slot warning)
+async function openDeleteModal(battle: Battle) {
+  const modal = overlay.create(DeleteModal, {
+    props: {
+      battle: battle
+    }
+  })
+  const confirmDelete = await modal.open()
+  if (confirmDelete) {
+    deleteBattleMutate(battle.id)
+    toast.add({
+      title: 'Battle deleted',
+      description: `"${battle.title}" has been removed`,
+      color: 'secondary',
+    });
+  }
+}
+
+
 const createBadge = (content: string, props = {}) => {
-  const UBadge = resolveComponent('UBadge');
   return h(UBadge, {
     size: 'md',  
     variant: 'soft',
@@ -49,26 +71,21 @@ const createBadge = (content: string, props = {}) => {
   }, () => content);
 };
 
-// Format title options with proper function slots
 const formatTitleOptions = (options: TitleOption[]): any => {
   if (!options || options.length === 0) return 'No options';
   
-  // Sort by score descending
   const sortedOptions = [...options].sort((a, b) => b.score - a.score);
   
   const elements = [];
   
-  // Add first option (truncated if needed)
   if (sortedOptions.length > 0) {
     elements.push(createBadge(sortedOptions[0].content));
   }
   
-  // Add second option if available
   if (sortedOptions.length > 1) {
     elements.push(createBadge(sortedOptions[1].content));
   }
   
-  // Add more indicator if needed
   if (sortedOptions.length > 2) {
     elements.push(
       h('span', { class: 'opacity-70 text-xs text-(--ui-yt-400)' }, `+ ${sortedOptions.length - 2} more`)
@@ -80,8 +97,6 @@ const formatTitleOptions = (options: TitleOption[]): any => {
 
 // Create a tooltip button with proper function slots
 const createTooltipButton = (icon: string, tooltip: string, onClick: (e: MouseEvent) => void, color = 'neutral') => {
-  const UTooltip = resolveComponent('UTooltip');
-  const UButton = resolveComponent('UButton');
   
   return h(UTooltip, { text: tooltip, variant: 'ghost' }, () => 
     h(UButton, {
@@ -155,84 +170,18 @@ const columns: TableColumn<Battle>[] = [
   }
 ];
 
-// Get origin for share URL
-const origin = computed(() => {
-  if (process.client) {
-    return window.location.origin;
-  }
-  return '';
-});
-
-// Full share URL
-const shareUrl = computed(() => {
-  return `${origin.value}/battles/${currentBattleId.value}/vote`;
-});
-
-// Share modal functions
-function openShareModal(battle: Battle) {
-  currentBattleId.value = battle.id;
-  shareModalTitle.value = battle.title;
-  shareModalOpen.value = true;
-  // Reset copy state
-  copied.value = false;
-}
-
-// Copy link function
-const copyLink = () => {
-  navigator.clipboard.writeText(shareUrl.value);
-  copied.value = true;
-  
-  toast.add({
-    title: 'Link copied',
-    description: 'Share link has been copied to clipboard',
-    color: 'primary'
-  });
-  
-  setTimeout(() => {
-    copied.value = false;
-  }, 2000);
-};
-
-// New function to begin voting from the share modal
-function beginVoting() {
-  shareModalOpen.value = false;
-  router.push(`/battles/${currentBattleId.value}/vote`);
-}
-
-// Delete modal functions
-function openDeleteModal(battle: Battle) {
-  deleteBattleId.value = battle.id;
-  deleteBattleName.value = battle.title;
-  deleteModalOpen.value = true;
-}
-
-function confirmDelete() {
-  if (deleteBattleId.value) {
-    deleteBattleMutate(deleteBattleId.value);
-    deleteModalOpen.value = false;
-    
-    toast.add({
-      title: 'Battle deleted',
-      description: `"${deleteBattleName.value}" has been removed`,
-      color: 'secondary',
-    });
-  }
-}
-
-// Handle row click
 function handleRowClick(row: any) {
   router.push(`/battles/${row.original.id}/results`);
 }
 
-// Custom empty state component
 const emptyState = () => {
   return h('div', { class: 'flex flex-col items-center justify-center py-16' }, [
-    h('div', { class: 'text-6xl mb-6' }, h(resolveComponent('UIcon'), { name: 'i-ph-empty', size: 'xl' })),
+    h('div', { class: 'text-6xl mb-6' }, h(UIcon, { name: 'i-ph-empty', size: 'xl' })),
     h('h3', { class: 'text-xl mb-2' }, 'No battles found'),
     h('p', { class: 'text-center opacity-80 mb-6 max-w-md' }, 
       'Create your first battle to start gathering feedback on which title options resonate the most with your audience.'
     ),
-    h(resolveComponent('UButton'), {
+    h(UButton, {
       color: 'primary',
       variant: 'solid',
       size: 'lg',
@@ -251,7 +200,7 @@ const emptyState = () => {
         :columns="columns"
         :data="state.data || []"
         :loading="asyncStatus === 'loading' || deleteStatus === 'loading'"
-        loading-color="primary"
+        loading-color="secondary"
         sticky
         :ui="{ 
           th: 'text-(--ui-yt-400) cursor-default',
@@ -292,85 +241,5 @@ const emptyState = () => {
         </template>
       </UTable>
     </UCard>
-    
-    <!-- Share Modal - Note: Empty trigger since we open programmatically -->
-    <UModal 
-      v-model:open="shareModalOpen"
-      :title="`Voting link for '${shareModalTitle}'`"
-      :ui="{ footer: 'justify-end', header: 'border-0', body: 'border-0' }"
-    >
-      <template #body class="-m-32">
-        <p class="mb-4">Share this link to collect votes:</p>
-        
-        <!-- Share URL input with copy button -->
-        <UInput
-          :model-value="shareUrl"
-          readonly
-          class="font-mono text-sm w-full"
-          variant="subtle"
-          :ui="{ trailing: '-mr-2' }"
-        >
-          <template #trailing>
-            <UTooltip :text="copied ? 'Copied!' : 'Copy to clipboard'">
-              <UButton
-                :color="copied ? 'secondary' : 'neutral'"
-                variant="link"
-                size="md"
-                :icon="copied ? 'i-ph-check-bold' : 'i-ph-copy'"
-                aria-label="Copy to clipboard"
-                class="bg-warm-300/20"
-                @click="copyLink"
-              />
-            </UTooltip>
-          </template>
-        </UInput>
-      </template>
-      
-      <template #footer>
-        <UButton 
-          color="neutral" 
-          variant="outline" 
-          @click="shareModalOpen = false"
-        >
-          Close
-        </UButton>
-        <UButton 
-          color="primary" 
-          icon="i-ph-arrow-right" 
-          @click="beginVoting"
-        >
-          Begin voting
-        </UButton>
-      </template>
-    </UModal>
-    
-    <!-- Delete Confirmation Modal - Note: Empty trigger since we open programmatically -->
-    <UModal 
-      v-model:open="deleteModalOpen"
-      title="Confirm Deletion"
-      :ui="{ footer: 'justify-end', header: 'border-0', body: 'border-0' }"
-    >
-      <template #body>
-        <p>Delete "{{ deleteBattleName }}"?</p>
-        <p class="mt-2 text-sm opacity-80">All votes and data for this battle will be permanently removed.</p>
-      </template>
-      
-      <template #footer>
-        <UButton 
-          color="neutral" 
-          variant="outline" 
-          @click="deleteModalOpen = false"
-        >
-          Cancel
-        </UButton>
-        <UButton 
-          color="primary" 
-          icon="i-ph-trash" 
-          @click="confirmDelete"
-        >
-          Delete
-        </UButton>
-      </template>
-    </UModal>
   </div>
 </template>
