@@ -15,7 +15,7 @@ import type {
  */
 function getApiBaseUrl() {
   // In client side, we can use window.location.origin
-  if (process.client) {
+  if (import.meta.client) {
     return window.location.origin;
   }
   

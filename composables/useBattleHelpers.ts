@@ -2,6 +2,8 @@
 import type { TitleOption } from '~/types';
 import { formatDistance, format } from 'date-fns';
 
+const toast = useToast();
+
 export function useBattleHelpers() {
   // Format a timestamp into a readable date
   const formatDate = (timestamp: number): string => {
@@ -22,82 +24,20 @@ export function useBattleHelpers() {
     return format(date, isToday ? 'p' : 'MMM d, yyyy');
   };
 
-  // Enhanced clipboard functionality with better error handling
-  const copyToClipboard = async (text: string, toast?: any): Promise<boolean> => {
-    try {
-      // Check if the Clipboard API is available
-      if (!navigator.clipboard) {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';  // Avoid scrolling
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-          const successful = document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          if (successful && toast) {
-            toast.add({
-              title: 'Copied to clipboard',
-              description: 'Text copied successfully',
-              color: 'primary',
-              timeout: 3000
-            });
-          }
-          return successful;
-        } catch (err) {
-          document.body.removeChild(textArea);
-          throw new Error('Failed to copy text');
-        }
-      }
-
-      // Modern approach with clipboard API
+  const copyToClipboard = async (text: string, withToast: boolean = false): Promise<boolean> => {
       await navigator.clipboard.writeText(text);
       
-      if (toast) {
+      if (withToast) {
         toast.add({
           title: 'Copied to clipboard',
           description: 'Text copied successfully',
-          color: 'primary',
-          timeout: 3000
-        });
-      }
-      
-      return true;
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      
-      if (toast) {
-        toast.add({
-          title: 'Failed to copy',
-          description: 'Could not copy text to clipboard',
           color: 'secondary',
-          timeout: 3000
         });
       }
-      
-      return false;
-    }
-  };
+      return true;
+    };
 
-  // Copy title text to clipboard - uses the enhanced copyToClipboard function
-  const copyTitleText = (title: string, toast?: any): Promise<boolean> => {
-    return copyToClipboard(title, toast);
-  };
 
-  // Select two random options for voting with improved edge case handling
-  const getRandomPair = (options: TitleOption[]): [TitleOption, TitleOption] | null => {
-    if (!options || options.length < 2) {
-      return null;
-    }
-
-    // Make a copy to avoid mutating the original
-    const shuffled = [...options].sort(() => 0.5 - Math.random());
-    return [shuffled[0], shuffled[1]];
-  };
 
   // Improved vote count label with proper pluralization
   const getVoteCountLabel = (count: number): string => {
@@ -106,18 +46,10 @@ export function useBattleHelpers() {
     return `${count} votes`;
   };
 
-  // Truncate long text with ellipsis
-  const truncateText = (text: string, maxLength: number): string => {
-    if (!text || text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
-  };
 
   return {
     formatDate,
     copyToClipboard,
-    copyTitleText,
-    getRandomPair,
     getVoteCountLabel,
-    truncateText
   };
 }

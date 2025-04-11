@@ -3,10 +3,6 @@
 import { useVotingSession } from '~/composables/useVotingSession';
 import { useVideoMetadata } from '~/composables/useVideoMetadata';
 
-definePageMeta({
-  layout: 'default'
-});
-
 const route = useRoute();
 const battleId = computed(() => route.params.id as string);
 

@@ -2,7 +2,7 @@
 import * as z from 'zod'
 import { updateBattleSchema } from '~/types/zod_schemas'
 import { useBattleDetails, useBattleMutations } from '~/composables/useBattleApi';
-import type { Battle, UpdateBattleRequest } from '~/types';
+import type { Battle } from '~/types';
 
 const targets = ref([]);
 const titleRef = ref(null);

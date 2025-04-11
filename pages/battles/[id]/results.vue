@@ -7,13 +7,6 @@ import { useBattleHelpers } from '~/composables/useBattleHelpers';
 import { useConfetti } from '~/composables/useConfetti';
 import type { TitleOption } from '~/types';
 
-definePageMeta({
-  layout: 'default',
-  pageTransition: {
-    name: 'slide-left'
-  }
-});
-
 // Extended TitleOption type with rank
 interface RankedTitleOption extends TitleOption {
   rank?: number;
@@ -22,11 +15,10 @@ interface RankedTitleOption extends TitleOption {
 const route = useRoute();
 const battleId = computed(() => route.params.id as string);
 const { showWinnerConfetti, clearAllConfetti } = useConfetti();
-const { copyTitleText, truncateText } = useBattleHelpers();
-const toast = useToast();
+const { copyToClipboard } = useBattleHelpers();
 
 // Get battle details
-const { state, asyncStatus, refresh } = useBattleDetails();
+const { state, asyncStatus } = useBattleDetails();
 
 // Get properly typed battle data
 const battle = computed(() => state.value?.data as any);
@@ -71,7 +63,7 @@ const createCopyTooltip = (content: string, rank: number) => {
   return h(UTooltip, { text: "Click to copy" }, () =>
     h('button', { 
       class: `truncate text-cold-500 max-w-full inline-block text-left cursor-pointer opacity-${opacity} hover:bg-cold-200/20 transition-colors`,
-      onClick: () => copyTitleText(content, toast),
+      onClick: () => copyToClipboard(content, true),
     }, content)
   );
 };
@@ -280,7 +272,7 @@ watch(() => winner.value, async (newWinner) => {
               <button 
                 class="text-xl font-medium text-warm-500 mb-2 cursor-pointer 
                        max-w-full px-8 mx-auto block truncate hover:bg-warm-200/30"
-                @click="copyTitleText(winner.content, toast)"
+                @click="copyToClipboard(winner.content, true)"
               >
                 {{ winner.content }}
               </button>
@@ -350,7 +342,6 @@ watch(() => winner.value, async (newWinner) => {
 </template>
 
 <style scoped>
-/* Add specific styles for handling long content */
 .truncate-title {
   display: inline-block;
   max-width: 100%;

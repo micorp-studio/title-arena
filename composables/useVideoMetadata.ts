@@ -29,7 +29,7 @@ export function useVideoMetadata() {
   // Helper functions
   const generateDuration = (seed: number) => {
     const seedNum = parseInt(seed.toString(), 10);
-    const minutes = 3 + (seedNum % 22);
+    const minutes = 40 //3 + (seedNum % 22);
     const seconds = (seedNum * 13) % 60;
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }

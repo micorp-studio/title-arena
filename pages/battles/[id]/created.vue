@@ -12,12 +12,17 @@ const { state, asyncStatus } = useBattleDetails();
 // Get properly typed battle data
 const battle = computed(() => state.value?.data as Battle | undefined);
 
-const shareLink = `${window.location.origin}/battles/${battle.value?.id}/vote`
+const shareLink = computed(() => {
+  if (import.meta.client) {
+    return `${window.location.origin}/battles/${battleId.value}/vote`;
+  }
+  return '';
+});
 
 const copied = ref(false);
 
 const copyLink = () => {
-  navigator.clipboard.writeText(shareLink);
+  navigator.clipboard.writeText(shareLink.value);
   copied.value = true;
   
   setTimeout(() => {
@@ -27,7 +32,7 @@ const copyLink = () => {
 
 // Go to voting page
 const beginVoting = () => {
-  navigateTo(`/battles/${battleId.value}/vote`);
+  navigateTo(`/battles/${battleId}/vote`);
 };
 
 // Go to home page
