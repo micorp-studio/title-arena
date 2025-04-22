@@ -17,8 +17,8 @@ export function useVideoMetadata() {
       videoDuration: generateDuration(seedValue),
       viewCount: generateViewCount(seedValue),
       timeAgo: generateTimeAgo(seedValue),
-      isVerified: parseInt(seedValue.toString(), 10) % 3 === 0,
-      user: await fetchUserData(seedValue)
+      // isVerified: parseInt(seedValue.toString(), 10) % 3 === 0,
+      // user: await fetchUserData(seedValue)
     }
     
     // Cache the result

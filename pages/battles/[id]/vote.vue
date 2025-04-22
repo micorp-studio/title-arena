@@ -110,6 +110,8 @@ watch(pairSeed, async (newSeed) => {
               <!-- Option A -->
               <VoteCard
                 :option="currentPair.optionA"
+                :battleType="battle.type"
+                :battleTitle="battle.title"
                 :metadata="pairMetadata"
                 :is-selected="selectedCard === 'A'"
                 :is-rejected="rejectedCard === 'A' || selectedCard === 'AB'"
@@ -124,6 +126,8 @@ watch(pairSeed, async (newSeed) => {
               <!-- Option B - Same metadata -->
               <VoteCard
                 :option="currentPair.optionB"
+                :battleType="battle.type"
+                :battleTitle="battle.title"
                 :metadata="pairMetadata"
                 :is-selected="selectedCard === 'B'"
                 :is-rejected="rejectedCard === 'B'  || selectedCard === 'AB'"

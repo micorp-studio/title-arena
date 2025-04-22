@@ -7,7 +7,8 @@ export const battles = sqliteTable('battles', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   createdAt: integer('created_at').notNull(),
-  voteCount: integer('vote_count').notNull().default(0)
+  voteCount: integer('vote_count').notNull().default(0),
+  type: text({ enum: ["title", "thumbnail"] }).notNull().default('title')
 });
 
 // Title options table

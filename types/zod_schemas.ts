@@ -9,7 +9,8 @@ export const battleSchema = z.object({
   .transform(options => options.filter(option => option.trim().length > 0))
   .refine(options => options.length >= 2, {
     message: 'At least 2 non-empty options are required'
-  })
+  }),
+  type: z.enum(['title', 'thumbnail'])
 }) satisfies z.ZodType<CreateBattleRequest>;
 
   
@@ -18,7 +19,8 @@ export const battleSchema = z.object({
     options: z.array(z.object({
       id: z.string().optional(),
       content: z.string().trim().min(1, 'Option cannot be empty').max(100, 'Option must be at most 100 characters')
-    })).min(2, `At least 2 options are required`)
+    })).min(2, `At least 2 options are required`),
+    type: z.enum(['title', 'thumbnail'])
   }) satisfies z.ZodType<UpdateBattleRequest>;
   
   export const voteSchema = z.object({

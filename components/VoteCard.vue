@@ -4,16 +4,18 @@ import type { TitleOption } from '~/types';
 
 const props = defineProps<{
   option: TitleOption;
+  battleType: 'title' | 'thumbnail',
+  battleTitle: string,
   metadata: {
     thumbnailUrl: string;
     videoDuration: string;
     viewCount: string;
     timeAgo: string;
-    isVerified: boolean;
-    user: {
-      username: string;
-      avatarUrl: string;
-    };
+    //isVerified: boolean;
+    //user: {
+    //  username: string;
+    //  avatarUrl: string;
+    //};
   } | null;
   isSelected: boolean;
   isRejected: boolean;
@@ -49,13 +51,17 @@ const handleSelect = () => {
     <!-- Thumbnail container with overlay -->
     <div class="relative rounded-xl overflow-hidden mb-3.5">
       <img 
-        :src="metadata.thumbnailUrl" 
-        class="w-full aspect-video object-cover sepia blur-sm" 
+        :src="`${battleType === 'title' ? metadata.thumbnailUrl : '/api/' + option.content}`"
+        class="w-full aspect-video object-cover" 
+        :class="battleType === 'title' ? 'sepia blur-sm' : ''"
         :alt="option.content"
       />
       
       <!-- Duration badge -->
-      <div class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 text-xs font-medium text-white rounded-[4px] blur-[1px]">
+      <div 
+        class="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 text-xs font-medium text-(--ui-yt-200) rounded-[4px]"
+        :class="battleType === 'title' ? 'blur-[1px]' : ''"
+      >
         {{ metadata.videoDuration }}
       </div>
       
@@ -80,10 +86,16 @@ const handleSelect = () => {
       
       <!-- Channel avatar -->
       <div class="flex-shrink-0 relative rounded-full overflow-hidden" style="width: 40px; height: 40px;">
-        <img 
+        <!-- <img 
           :src="metadata.user.avatarUrl" 
           :alt="`${metadata.user.username} avatar`"
           class="absolute inset-0 w-full h-full object-cover sepia filter blur-xs"
+        /> -->
+        <img 
+          src="/micode.jpg" 
+          alt="micode"
+          class="absolute inset-0 w-full h-full object-cover"
+          :class="battleType === 'title' ? 'sepia blur-[2px]' : ''"
         />
       </div>
 
@@ -96,22 +108,35 @@ const handleSelect = () => {
           style="display: -webkit-box; -webkit-box-orient: vertical;"
           :title="option.content"
         >
-          {{ option.content }}
+          {{ battleType === 'title' ? option.content : battleTitle }}
         </h3>
 
         
         <!-- Channel name with verified badge if applicable -->
-        <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1 blur-[1px]">
+        <!-- <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1 blur-[1px]">
           <span>{{ metadata.user.username }}</span>
           <UIcon 
             v-if="metadata.isVerified" 
             name="i-ph-check-circle-fill" 
             class="ml-1 text-(--ui-yt-400) h-3.5 w-3.5"
           />
+        </div> -->
+        <div 
+          class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1"
+          :class="battleType === 'title' ? 'blur-[1px]' : ''"
+        >
+          <span>Micode</span>
+          <UIcon 
+            name="i-ph-check-circle-fill" 
+            class="ml-1 text-(--ui-yt-400) h-3.5 w-3.5"
+          />
         </div>
         
         <!-- View count and time ago -->
-        <div class="text-[0.9rem] text-(--ui-yt-400) flex items-center blur-[1px]">
+        <div 
+          class="text-[0.9rem] text-(--ui-yt-400) flex items-center"
+          :class="battleType === 'title' ? 'blur-[1px]' : ''"
+        >
           <span>{{ metadata.viewCount }}</span>
           <span class="mx-1">•</span>
           <span>{{ metadata.timeAgo }}</span>
@@ -119,7 +144,10 @@ const handleSelect = () => {
       </div>
       
       <!-- Video menu button - positioned to the right -->
-      <div class="cursor-pointer self-start mt-[2px] blur-[1px]">
+      <div 
+        class="cursor-pointer self-start mt-[2px]"
+        :class="battleType === 'title' ? 'blur-[1px]' : ''"
+      >
         <UIcon name="i-lucide-more-vertical" class="h-5 w-5 text-(--ui-yt-200)/90"/>
       </div>
     </div>

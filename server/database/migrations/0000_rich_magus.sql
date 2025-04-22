@@ -2,7 +2,8 @@ CREATE TABLE `battles` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
 	`created_at` integer NOT NULL,
-	`vote_count` integer DEFAULT 0 NOT NULL
+	`vote_count` integer DEFAULT 0 NOT NULL,
+	`type` text DEFAULT 'title' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `title_options` (

@@ -24,6 +24,7 @@ export function mapBattleRecord(battle: typeof schema.battles.$inferSelect & {
     title: battle.title,
     createdAt: battle.createdAt,
     voteCount: battle.voteCount,
+    type: battle.type,
     titleOptions: battle.titleOptions.map(option => ({
       id: option.id,
       battleId: option.battleId,

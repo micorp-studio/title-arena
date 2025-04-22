@@ -27,7 +27,8 @@ export default defineEventHandler(async (event): Promise<Battle> => {
         id: battleId,
         title: validData.title,
         createdAt: now,
-        voteCount: 0
+        voteCount: 0,
+        type: validData.type
       });
     
     // Insert all title options

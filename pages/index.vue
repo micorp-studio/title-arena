@@ -14,7 +14,7 @@ const router = useRouter();
 const UBadge = resolveComponent('UBadge')
 const UTooltip = resolveComponent('UTooltip');
 const UButton = resolveComponent('UButton');
-const UIcon = resolveComponent('UIcon')
+const UIcon = resolveComponent('UIcon');
 
 const { formatDate, getVoteCountLabel } = useBattleHelpers();
 
@@ -79,11 +79,11 @@ const formatTitleOptions = (options: TitleOption[]): any => {
   const elements = [];
   
   if (sortedOptions.length > 0) {
-    elements.push(createBadge(sortedOptions[0].content));
+    elements.push(createBadge(sortedOptions[0].content.replace('minias/', '')));
   }
   
   if (sortedOptions.length > 1) {
-    elements.push(createBadge(sortedOptions[1].content));
+    elements.push(createBadge(sortedOptions[1].content.replace('minias/', '')));
   }
   
   if (sortedOptions.length > 2) {
@@ -129,6 +129,19 @@ const columns: TableColumn<Battle>[] = [
         }, battle.title),
         formatTitleOptions(battle.titleOptions),
       ]);
+    }
+  },
+  {
+    accessorKey: 'type',
+    header: 'TYPE',
+    cell: ({ row }) => {
+      return h(UIcon, { name: `${row.original.type === 'title' ? 'i-ph-text' : 'i-ph-image'}`, size: 'xl' });
+    },
+    meta: {
+      class: {
+        td: 'text-center',
+        th: 'text-center'
+      }
     }
   },
   {

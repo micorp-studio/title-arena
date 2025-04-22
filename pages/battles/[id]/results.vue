@@ -25,33 +25,33 @@ const battle = computed(() => state.value?.data as any);
 
 const optionAppearances = computed(() => {
   if (!battle.value?.titleOptions) return {};
-  
+
   const appearances: Record<string, number> = {};
-  
+
   const titles = battle.value.titleOptions as TitleOption[]
   titles.forEach(option => {
     appearances[option.id] = 0;
   });
-  
+
   if (battle.value?.voteCount && titles.length >= 2) {
     const n = titles.length;
-    
+
     const totalPairs = n * (n - 1) / 2; // Total number of unique pairs
     const votesPerPair = battle.value.voteCount / totalPairs; // Average votes per pair
-    
+
     // Each option appears in (n-1) different pairs
     titles.forEach(option => {
       appearances[option.id] = (n - 1) * votesPerPair;
     });
   }
-  
+
   return appearances;
 });
 
 // Get sorted options by score (descending)
 const sortedOptions = computed(() => {
   if (!battle.value?.titleOptions) return [];
-  
+
   return [...battle.value.titleOptions]
     .sort((a, b) => a.content.length - b.content.length) // tie-break: prefer shortest title
     .sort((a, b) => b.score - a.score)
@@ -67,28 +67,16 @@ const hasResults = computed(() => sortedOptions.value.length > 0);
 // Get the winner
 const winner = computed(() => hasResults.value ? sortedOptions.value[0] : null);
 
-// Random winner message
-const winnerMessage = computed(() => {
-  const messages = [
-    "Champion",
-    "Best Choice",
-    "Winner",
-    "Top Pick",
-    "Perfect"
-  ];
-  return messages[Math.floor(Math.random() * messages.length)];
-});
+const isTitleBattle = computed(() => battle.value?.type === 'title');
 
 // Helper function to create a tooltip with copy functionality
-const createCopyTooltip = (content: string, rank: number) => {
+const createCopyTooltip = (content: string, opacity: number) => {
   const UTooltip = resolveComponent('UTooltip');
-  const opacity = rank === 1 ? '100' : 
-                 rank === 2 ? '90' : 
-                 rank === 3 ? '80' : '70';
-  
+
   return h(UTooltip, { text: "Click to copy" }, () =>
-    h('button', { 
-      class: `truncate text-cold-500 max-w-full inline-block text-left cursor-pointer opacity-${opacity} hover:bg-cold-200/20 transition-colors`,
+    h('button', {
+      class: `truncate text-cold-500 max-w-full inline-block text-left cursor-pointer hover:bg-cold-200/20 transition-colors`,
+      style: { opacity: `${opacity}%` },
       onClick: () => copyToClipboard(content, true),
     }, content)
   );
@@ -101,11 +89,12 @@ const columns: TableColumn<RankedTitleOption>[] = [
     header: 'Rank',
     cell: ({ row }) => {
       const rank = row.original.rank;
-      const opacity = rank === 1 ? '100' : 
-                     rank === 2 ? '90' : 
-                     rank === 3 ? '80' : '70';
-      
-      return h('div', { class: `text-center text-(--ui-yt-200) opacity-${opacity}` }, rank);
+      const opacity = Math.max(100 - 10*(rank || 0), 0);
+
+      return h('div', { 
+        class: `text-center text-(--ui-yt-200)`,
+        style: { opacity: `${opacity}%` }
+       }, rank);
     },
     meta: {
       class: {
@@ -120,20 +109,23 @@ const columns: TableColumn<RankedTitleOption>[] = [
     cell: ({ row }) => {
       const rank = row.original.rank;
       const content = row.original.content;
-      
-      // Determine font weight based on rank
-      const fontWeight = rank === 1 ? 'font-medium' : 
-                         rank === 2 ? 'font-normal' : '';
-      
-      // Determine opacity based on rank
-      const opacity = rank === 1 ? '100' : 
-                     rank === 2 ? '90' : 
-                     rank === 3 ? '80' : '70';
-      
-      // Use a container div to handle long content with truncation
-      return h('div', { class: 'max-w-md overflow-hidden' }, [
-        createCopyTooltip(content, rank || 0)
-      ]);
+      const opacity = Math.max(100 - 10*(rank || 0), 0);
+      if (isTitleBattle.value) {
+        // Determine font weight based on rank
+        const fontWeight = rank === 1 ? 'font-medium' :
+          rank === 2 ? 'font-normal' : '';
+
+        // Use a container div to handle long content with truncation
+        return h('div', { class: 'max-w-md overflow-hidden' }, [
+          createCopyTooltip(content, opacity)
+        ]);
+      } else {
+        return h('img', {
+          src: '/api/'+ content, 
+          alt: content,
+          class: 'rounded-md shadow-sm border-1 border-(--ui-yt-600) h-32',
+        })
+      }
     },
     meta: {
       class: {
@@ -147,14 +139,11 @@ const columns: TableColumn<RankedTitleOption>[] = [
     cell: ({ row }) => {
       const rank = row.original.rank;
       const scoreElo = row.original.scoreElo;
-      
-      // Determine opacity based on rank
-      const opacity = rank === 1 ? '100' : 
-                     rank === 2 ? '90' : 
-                     rank === 3 ? '80' : '70';
-      
-      return h('div', { 
-        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
+      const opacity = Math.max(100 - 10*(rank || 0), 0);
+
+      return h('div', {
+        class: `text-right text-(--ui-yt-200)`,
+        style: { opacity: `${opacity}%` }
       }, scoreElo);
     },
     meta: {
@@ -170,14 +159,11 @@ const columns: TableColumn<RankedTitleOption>[] = [
     cell: ({ row }) => {
       const rank = row.original.rank;
       const score = row.original.score;
-      
-      // Determine opacity based on rank
-      const opacity = rank === 1 ? '100' : 
-                     rank === 2 ? '90' : 
-                     rank === 3 ? '80' : '70';
-      
-      return h('div', { 
-        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
+      const opacity = Math.max(100 - 10*(rank || 0), 0);
+
+      return h('div', {
+        class: `text-right text-(--ui-yt-200) opacity-${opacity}`,
+        style: { opacity: `${opacity}%` }
       }, score);
     },
     meta: {
@@ -198,13 +184,12 @@ const columns: TableColumn<RankedTitleOption>[] = [
       if (appearances > 0) {
         victoryRate = Math.round((score / appearances) * 100);
       }
-      
-      const opacity = rank === 1 ? '100' : 
-                     rank === 2 ? '90' : 
-                     rank === 3 ? '80' : '70';
-      
-      return h('div', { 
-        class: `text-right text-(--ui-yt-200) opacity-${opacity}`
+
+      const opacity = Math.max(100 - 10*(rank || 0), 0);
+
+      return h('div', {
+        class: `text-right text-(--ui-yt-200)`,
+        style: { opacity: `${opacity}%` }
       }, `${victoryRate} %`);
     },
     meta: {
@@ -248,7 +233,7 @@ watch(() => winner.value, async (newWinner) => {
         { label: 'Results', icon: 'i-ph-ranking' }
       ]" />
     </div>
-    
+
     <!-- Loading state -->
     <div v-if="asyncStatus === 'loading' && !battle" class="max-w-3xl mx-auto">
       <UCard class="ring-0">
@@ -260,10 +245,10 @@ watch(() => winner.value, async (newWinner) => {
             </div>
             <USkeleton class="h-10 w-32 rounded-md" />
           </div>
-          
+
           <!-- Winner skeleton -->
           <USkeleton class="h-36 w-full rounded-lg mb-6" />
-          
+
           <!-- Table skeleton -->
           <div class="space-y-3">
             <div class="flex items-center gap-4 p-2">
@@ -277,7 +262,7 @@ watch(() => winner.value, async (newWinner) => {
               <USkeleton class="h-6 w-16" />
             </div>
           </div>
-          
+
           <!-- Footer skeleton -->
           <div class="flex justify-end gap-2 mt-6">
             <USkeleton class="h-10 w-28 rounded-md" />
@@ -286,7 +271,7 @@ watch(() => winner.value, async (newWinner) => {
         </div>
       </UCard>
     </div>
-    
+
     <!-- Error state -->
     <div v-else-if="state.status === 'error'" class="max-w-3xl mx-auto">
       <UCard>
@@ -300,7 +285,7 @@ watch(() => winner.value, async (newWinner) => {
         </div>
       </UCard>
     </div>
-    
+
     <!-- Results content -->
     <div v-else-if="battle" class="max-w-3xl mx-auto">
       <UCard class="ring-0" :ui="{ header: 'border-0', body: 'border-0' }">
@@ -310,68 +295,61 @@ watch(() => winner.value, async (newWinner) => {
               <h1 class="text-xl font-bold truncate mb-1" :title="battle.title">{{ battle.title }}</h1>
               <p class="text-md opacity-70">{{ battle.voteCount || 0 }} votes</p>
             </div>
-            
+
             <div class="flex gap-2">
-              <UButton
-                :to="`/battles/${battleId}/edit`"
-                color="neutral"
-                variant="ghost"
-                icon="i-ph-pencil-simple"
-              >
+              <UButton :to="`/battles/${battleId}/edit`" color="neutral" variant="ghost" icon="i-ph-pencil-simple">
                 Edit Battle
               </UButton>
             </div>
           </div>
         </template>
-        
+
         <!-- Winner spotlight using UCard -->
         <div v-if="winner" id="confetti-container" class="mb-6 mt-2">
-          <UCard
-            variant="subtle"
-            class="text-center ring-0"
-            :ui="{ root: 'bg-(--ui-yt-600)/30 border-(--ui-yt-400)/50 border-1' }"
-          >
+          <UCard variant="subtle" class="text-center ring-0"
+            :ui="{ root: 'bg-(--ui-yt-600)/30 border-(--ui-yt-400)/50 border-1' }">
             <!-- Trophy icon -->
-            <div class="flex justify-center mb-3">
+            <div class="flex justify-center mb-2">
               <UIcon name="i-ph-trophy" class="text-4xl text-warm-500" />
             </div>
-            
+
             <!-- Winner badge -->
-            <div class="mb-3">
-              <span class="px-3 py-0.5 text-xs font-bold bg-warm-500/10 text-warm-500 rounded-full">
-                {{ winnerMessage }}
-              </span>
+            <div>
+              <div class="mb-3">
+                <span class="px-3 py-0.5 text-xs font-bold bg-warm-500/10 text-warm-500 rounded-full">
+                  Winner
+                </span>
+              </div>
             </div>
-            
+
             <!-- Winner spotlight -->
-            <UTooltip text="Click to copy">
-              <button 
-                class="text-xl font-medium text-warm-500 mb-2 cursor-pointer 
+            <UTooltip text="Click to copy" v-if="isTitleBattle">
+              <button class="text-xl font-medium text-warm-500 mb-2 cursor-pointer 
                        max-w-full px-8 mx-auto block truncate hover:bg-warm-200/30"
-                @click="copyToClipboard(winner.content, true)"
-              >
+                @click="copyToClipboard(winner.content, true)">
                 {{ winner.content }}
               </button>
             </UTooltip>
-            
+            <div v-else
+              class="mb-4 rounded-md shadow-md border-1 border-(--ui-yt-600) flex flex-col items-center justify-center">
+              <img :src="`/api/${winner.content}`" :alt="winner.content"
+                class="max-w-full max-h-full object-contain rounded">
+            </div>
+
             <p class="text-sm text-(--ui-yt-400)">
               Score: {{ winner.score }}
             </p>
           </UCard>
         </div>
-        
+
         <!-- Results table -->
-        <UTable 
-          :columns="columns"
-          :data="sortedOptions"
-          :ui="{
-            base: 'min-w-full text-left rtl:text-right',
-            tbody: 'divide-y divide-(--ui-yt-600)',
-            tr: 'hover:bg-white/2 transition-colors',
-            th: 'px-4 py-3 text-sm font-medium text-(--ui-yt-400) uppercase',
-            td: 'px-4 py-3 text-(--ui-yt-400)'
-          }"
-        >
+        <UTable :columns="columns" :data="sortedOptions" :ui="{
+          base: 'min-w-full text-left rtl:text-right',
+          tbody: 'divide-y divide-(--ui-yt-600)',
+          tr: 'hover:bg-white/2 transition-colors',
+          th: 'px-4 py-3 text-sm font-medium text-(--ui-yt-400) uppercase',
+          td: 'px-4 py-3 text-(--ui-yt-400)'
+        }">
           <!-- Empty state -->
           <template #empty>
             <div class="text-center py-8">
@@ -380,34 +358,20 @@ watch(() => winner.value, async (newWinner) => {
               <p class="text-sm opacity-80 mb-4">
                 This battle hasn't received any votes yet
               </p>
-              
-              <UButton
-                :to="`/battles/${battleId}/vote`"
-                color="primary"
-                icon="i-ph-check-square"
-              >
+
+              <UButton :to="`/battles/${battleId}/vote`" color="primary" icon="i-ph-check-square">
                 Start Voting
               </UButton>
             </div>
           </template>
         </UTable>
-        
+
         <template #footer>
           <div class="flex justify-end items-center gap-4">
-            <UButton 
-              :to="`/battles/${battleId}/vote`"
-              color="neutral"
-              variant="ghost"
-              icon="i-ph-arrow-clockwise"
-            >
+            <UButton :to="`/battles/${battleId}/vote`" color="neutral" variant="ghost" icon="i-ph-arrow-clockwise">
               Vote again
             </UButton>
-            <UButton
-              :to="`/`"
-              color="primary"
-              variant="subtle"
-              icon="i-ph-arrow-left"
-            >
+            <UButton :to="`/`" color="primary" variant="subtle" icon="i-ph-arrow-left">
               Back to Home
             </UButton>
           </div>
@@ -427,6 +391,7 @@ watch(() => winner.value, async (newWinner) => {
 }
 
 @media (max-width: 640px) {
+
   /* More aggressive truncation on mobile */
   .truncate-title {
     max-width: 200px;

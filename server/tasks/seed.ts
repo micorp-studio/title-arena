@@ -23,7 +23,8 @@ export default defineTask({
       id: battleId1,
       title: 'Best Title for a Foot Sniffing Documentary',
       createdAt: now,
-      voteCount: 12
+      voteCount: 12,
+      type: 'title'
     });
     
     // Add title options for first battle
@@ -52,7 +53,8 @@ export default defineTask({
       id: battleId2,
       title: 'Reddit Post Title About My Roommate Sniffing My Feet',
       createdAt: now - 172800, // 2 days ago
-      voteCount: 57
+      voteCount: 57,
+      type: 'title'
     });
     
     // Add title options for second battle

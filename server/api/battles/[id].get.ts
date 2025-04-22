@@ -6,7 +6,7 @@ import type { Battle } from '~/types';
 
 const log = logger('battles-get-by-id');
 
-export default defineEventHandler(async (event): Promise<Battle> => {
+export default eventHandler(async (event): Promise<Battle> => {
   try {
     const id = getBattleIdParam(event);
     const { findBattleById } = battleOperations();
