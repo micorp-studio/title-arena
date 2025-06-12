@@ -102,14 +102,14 @@ const handleSelect = () => {
             class="ml-1 text-(--ui-yt-400) h-3.5 w-3.5"
           />
         </div> -->
-        <div class="flex items-center text-[0.85rem] text-(--ui-yt-400) mt-1.25"
+        <div class="flex items-center text-[0.9rem] text-(--ui-yt-400) mt-1.25"
           :class="battleType === 'title' ? 'blur-[1px]' : ''">
           <span>Micode</span>
           <UIcon name="i-ph-check-circle-fill" class="ml-1 text-(--ui-yt-400) h-3.5 w-3.5" />
         </div>
 
         <!-- View count and time ago -->
-        <div class="text-[0.85rem] text-(--ui-yt-400) flex items-center"
+        <div class="text-[0.9rem] text-(--ui-yt-400) flex items-center"
           :class="battleType === 'title' ? 'blur-[1px]' : ''">
           <span>{{ metadata.viewCount }}</span>
           <span class="mx-1">•</span>
